@@ -48,10 +48,9 @@ jobs:
       image: brentp/somalier:v0.3.5
     steps:
       - uses: actions/checkout@v7
+      # The somalier image is Alpine, so Python comes from apk.
       - name: Install Python
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends python3 python3-pip python3-venv
+        run: apk add --no-cache python3 py3-pip
       - name: Install package and run the somalier tests
         run: |
           python3 -m venv /opt/venv
