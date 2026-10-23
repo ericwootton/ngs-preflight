@@ -1,0 +1,2 @@
+sample_id,fastq_1,fastq_2,sex,family_id,paternal_id,maternal_id,library_id,lane
+A,A_R1.fastq.gz,A_R2.fastq.gz,male,F1,A,,L1,1

@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "FileResult": {
+      "description": "Everything known about one input file.",
+      "properties": {
+        "checks_passed": {
+          "description": "Checks that ran and found nothing to report.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Checks Passed",
+          "type": "array"
+        },
+        "checks_run": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Checks Run",
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "bed",
+            "samplesheet",
+            "reference",
+            "reads",
+            "identity"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "kind"
+      ],
+      "title": "FileResult",
+      "type": "object"
+    },
+    "Finding": {
+      "description": "One problem (or note) found by one check in one file.",
+      "properties": {
+        "check_id": {
+          "description": "Stable check identifier, e.g. BED003.",
+          "title": "Check Id",
+          "type": "string"
+        },
+        "detail": {
+          "description": "Technical description of how the check works.",
+          "title": "Detail",
+          "type": "string"
+        },
+        "file": {
+          "description": "The file (or pseudo-file) this finding belongs to.",
+          "title": "File",
+          "type": "string"
+        },
+        "fix": {
+          "description": "Plain-language suggestion for putting it right.",
+          "title": "Fix",
+          "type": "string"
+        },
+        "message": {
+          "description": "Plain-language explanation: what is wrong and why it matters.",
+          "title": "Message",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "technical": {
+          "default": "",
+          "description": "Instance-specific evidence (line numbers, examples, counts).",
+          "title": "Technical",
+          "type": "string"
+        },
+        "title": {
+          "description": "Short name of the check.",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "severity",
+        "title",
+        "file",
+        "message",
+        "fix",
+        "detail"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "Severity": {
+      "description": "How serious a finding is. ERROR blocks submission; WARN should be reviewed.",
+      "enum": [
+        "ERROR",
+        "WARN",
+        "INFO"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "SkippedCheck": {
+      "description": "A check that could not run, with the reason in plain language.",
+      "properties": {
+        "check_id": {
+          "title": "Check Id",
+          "type": "string"
+        },
+        "file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "title",
+        "reason"
+      ],
+      "title": "SkippedCheck",
+      "type": "object"
+    },
+    "Summary": {
+      "properties": {
+        "checks_run": {
+          "default": 0,
+          "title": "Checks Run",
+          "type": "integer"
+        },
+        "checks_skipped": {
+          "default": 0,
+          "title": "Checks Skipped",
+          "type": "integer"
+        },
+        "errors": {
+          "default": 0,
+          "title": "Errors",
+          "type": "integer"
+        },
+        "files": {
+          "default": 0,
+          "title": "Files",
+          "type": "integer"
+        },
+        "infos": {
+          "default": 0,
+          "title": "Infos",
+          "type": "integer"
+        },
+        "warnings": {
+          "default": 0,
+          "title": "Warnings",
+          "type": "integer"
+        }
+      },
+      "title": "Summary",
+      "type": "object"
+    },
+    "ToolInfo": {
+      "properties": {
+        "name": {
+          "default": "ngs-preflight",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version"
+      ],
+      "title": "ToolInfo",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The complete result of one ``preflight check`` run (the JSON contract).",
+  "properties": {
+    "duration_seconds": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Wall-clock run time; null in reproducible-output mode.",
+      "title": "Duration Seconds"
+    },
+    "exit_code": {
+      "description": "The process exit code that goes with this outcome.",
+      "title": "Exit Code",
+      "type": "integer"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/FileResult"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "generated_at": {
+      "description": "UTC timestamp, ISO 8601.",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "headline": {
+      "description": "One-sentence plain-language verdict.",
+      "title": "Headline",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "description": "Version of this JSON layout.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "skipped": {
+      "items": {
+        "$ref": "#/$defs/SkippedCheck"
+      },
+      "title": "Skipped",
+      "type": "array"
+    },
+    "status": {
+      "description": "Overall outcome after applying --strict: pass, warnings or errors.",
+      "enum": [
+        "pass",
+        "warnings",
+        "errors"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "strict": {
+      "description": "True if warnings were treated as errors.",
+      "title": "Strict",
+      "type": "boolean"
+    },
+    "summary": {
+      "$ref": "#/$defs/Summary"
+    },
+    "tool": {
+      "$ref": "#/$defs/ToolInfo"
+    }
+  },
+  "required": [
+    "tool",
+    "generated_at",
+    "strict",
+    "status",
+    "exit_code",
+    "headline",
+    "summary",
+    "files"
+  ],
+  "title": "ngs-preflight report",
+  "type": "object"
+}

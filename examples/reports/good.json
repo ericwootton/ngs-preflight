@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0",
+  "tool": {
+    "name": "ngs-preflight",
+    "version": "0.1.0"
+  },
+  "generated_at": "2026-01-01T00:00:00Z",
+  "duration_seconds": null,
+  "strict": false,
+  "status": "pass",
+  "exit_code": 0,
+  "headline": "Ready to run",
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "infos": 1,
+    "files": 3,
+    "checks_run": 20,
+    "checks_skipped": 3
+  },
+  "files": [
+    {
+      "path": "examples/reference/GRCh38_no_alt_analysis_set.fa.fai",
+      "kind": "reference",
+      "checks_run": [],
+      "checks_passed": [],
+      "findings": []
+    },
+    {
+      "path": "examples/good/targets.bed",
+      "kind": "bed",
+      "checks_run": [
+        "BED001",
+        "BED002",
+        "BED003",
+        "BED004",
+        "BED005",
+        "BED006",
+        "BED007",
+        "BED008",
+        "BED009",
+        "BED010",
+        "BED011"
+      ],
+      "checks_passed": [
+        "BED001",
+        "BED002",
+        "BED003",
+        "BED004",
+        "BED005",
+        "BED006",
+        "BED007",
+        "BED008",
+        "BED010",
+        "BED011"
+      ],
+      "findings": [
+        {
+          "check_id": "BED009",
+          "severity": "INFO",
+          "title": "Territory summary",
+          "file": "examples/good/targets.bed",
+          "message": "18 intervals on 7 chromosomes, covering 5,646 bp after merging overlaps. Sizes: smallest 231 bp, median 300 bp, largest 700 bp. chrY absent; chrM present.",
+          "fix": "No action needed. Check that the totals match what you expect for your design (for example, the panel or exome you ordered).",
+          "detail": "Counts intervals, total and merged base pairs, the size distribution, intervals on alt/decoy/unplaced contigs (any name that is not chr1-22, X, Y or M, with or without 'chr'), presence of chrY and chrM, and the number of header lines that were ignored.",
+          "technical": "intervals=18, raw_bp=5646, merged_bp=5646, mean_size=313.7, style=chr"
+        }
+      ]
+    },
+    {
+      "path": "examples/good/samples.csv",
+      "kind": "samplesheet",
+      "checks_run": [
+        "SS001",
+        "SS002",
+        "SS003",
+        "SS004",
+        "SS005",
+        "SS006",
+        "SS007",
+        "SS008",
+        "SS009"
+      ],
+      "checks_passed": [
+        "SS001",
+        "SS002",
+        "SS003",
+        "SS004",
+        "SS005",
+        "SS006",
+        "SS007",
+        "SS008",
+        "SS009"
+      ],
+      "findings": []
+    }
+  ],
+  "skipped": [
+    {
+      "check_id": "REF001",
+      "title": "Reference, BED and reads agree on naming and genome build",
+      "file": "examples/reference/GRCh38_no_alt_analysis_set.fa.fai",
+      "reason": "there are no BAM files to compare (FASTQ files carry no chromosome header, and BAMs are only found when --reads-dir and the sample sheet point at them)"
+    },
+    {
+      "check_id": "REF002",
+      "title": "Reads and reference list the same chromosomes",
+      "file": "examples/reference/GRCh38_no_alt_analysis_set.fa.fai",
+      "reason": "there are no BAM files to compare (FASTQ files carry no chromosome header, and BAMs are only found when --reads-dir and the sample sheet point at them)"
+    },
+    {
+      "check_id": "REF003",
+      "title": "Read-file header could not be inspected",
+      "file": "examples/reference/GRCh38_no_alt_analysis_set.fa.fai",
+      "reason": "there are no BAM files to compare (FASTQ files carry no chromosome header, and BAMs are only found when --reads-dir and the sample sheet point at them)"
+    }
+  ]
+}

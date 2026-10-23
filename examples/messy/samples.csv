@@ -1,0 +1,11 @@
+sample_id,fastq_1,fastq_2,sex,family_id,paternal_id,maternal_id,library_id,lane
+S01,S01_R1.fastq.gz,S01_R2.fastq.gz,male,FAM2,S02,S03,LIB1,1
+S02,S02_R1.fastq.gz,S02_R2.fastq.gz,male,FAM2,,,LIB2,1
+S01,S04_R1.fastq.gz,S04_R2.fastq.gz,female,FAM2,,,LIB3,1
+S 05/b,S05_R1.fastq.gz,S05_R2.fastq.gz,female,FAM3,,,LIB4,1
+S06,S06_R1.fastq.gz,S06_R2.fastq.gz,banana,FAM3,,,LIB5,1
+S07,S07_R1.fastq.gz,S07_R2.fastq.gz,female,FAM3,S07,S99,LIB6,1
+S08,S08_R2.fastq.gz,S08_R1.fastq.gz,male,,,,LIB7,1
+S09,S09_R1.fastq.gz,S09_R2.fastq.gz,female,,,,LIB8,1
+S10,S10_R1.fastq.gz,S10_R2.fastq.gz,male,,,,LIB9,1
+S11,S01_R1.fastq.gz,S11_R2.fastq.gz,male,,,,LIB10,1

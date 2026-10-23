@@ -1,0 +1,4 @@
+sample_id,fastq_1,fastq_2,sex,family_id,paternal_id,maternal_id,library_id,lane
+FAM1_child,FAM1_child_R1.fastq.gz,FAM1_child_R2.fastq.gz,male,FAM1,FAM1_father,FAM1_mother,LIB_FAM1_child,1
+FAM1_father,FAM1_father_R1.fastq.gz,FAM1_father_R2.fastq.gz,male,FAM1,,,LIB_FAM1_father,1
+FAM1_mother,FAM1_mother_R1.fastq.gz,FAM1_mother_R2.fastq.gz,female,FAM1,,,LIB_FAM1_mother,1

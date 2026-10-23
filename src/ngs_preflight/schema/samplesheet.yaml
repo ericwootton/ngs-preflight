@@ -1,0 +1,42 @@
+# Sample sheet schema used by ngs-preflight (checks SS001-SS009).
+# The sheet is a CSV or TSV file with one row per FASTQ pair (or alignment file).
+columns:
+  - name: sample_id
+    required: true
+    description: Unique sample identifier. Letters, digits, underscore and hyphen only.
+  - name: fastq_1
+    required: true
+    description: Path to read 1 (or the BAM/CRAM) for this row.
+  - name: fastq_2
+    required: true
+    description: Path to read 2 for this row.
+  - name: sex
+    required: false
+    description: Declared sex, from the allowed vocabulary below.
+  - name: family_id
+    required: false
+    description: Family identifier, used with the two parent columns.
+  - name: paternal_id
+    required: false
+    description: sample_id of the father; blank, 0, . or NA if unknown.
+  - name: maternal_id
+    required: false
+    description: sample_id of the mother; blank, 0, . or NA if unknown.
+  - name: library_id
+    required: false
+    description: Library identifier.
+  - name: lane
+    required: false
+    description: Lane number. Rows that repeat a sample_id are allowed only if lane differs.
+
+sample_id:
+  pattern: "^[A-Za-z0-9_-]+$"
+  max_length: 64
+
+sex:
+  # Case-insensitive. 1/2/0 follow the PLINK/PED convention.
+  male: ["male", "m", "1"]
+  female: ["female", "f", "2"]
+  unknown: ["unknown", "u", "0", "na", "n/a", "."]
+
+no_parent_markers: ["", "0", ".", "na", "n/a", "none"]

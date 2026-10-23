@@ -1,0 +1,7 @@
+{
+  "reads_dir": true,
+  "checks": [
+    "SS004",
+    "SS007"
+  ]
+}

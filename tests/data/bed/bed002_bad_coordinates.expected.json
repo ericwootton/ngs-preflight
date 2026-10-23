@@ -1,0 +1,7 @@
+{
+  "reference": "grch38",
+  "checks": [
+    "BED002",
+    "BED005"
+  ]
+}

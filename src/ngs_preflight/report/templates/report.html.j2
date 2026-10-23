@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preflight report: {{ verdict }}</title>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --text: #1b1f24; --muted: #57606a; --border: #c9d1d9;
+  --pass-bg: #e6f4ea; --pass-fg: #0b5d1e; --pass-bd: #1a7f37;
+  --warn-bg: #fff4d6; --warn-fg: #7a4b00; --warn-bd: #b7791f;
+  --fail-bg: #fde8e8; --fail-fg: #8a1111; --fail-bd: #cf222e;
+  --info-bg: #e7f0fb; --info-fg: #0b3d7a; --info-bd: #3b79c3;
+  --code-bg: #eef1f4;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1318; --card: #171c23; --text: #e6e9ed; --muted: #a2adb9; --border: #38424d;
+    --pass-bg: #12301b; --pass-fg: #8be0a0; --pass-bd: #3fb950;
+    --warn-bg: #36290a; --warn-fg: #f0c869; --warn-bd: #d29922;
+    --fail-bg: #3b1416; --fail-fg: #ffaba8; --fail-bd: #f85149;
+    --info-bg: #10263f; --info-fg: #9ecbff; --info-bd: #58a6ff;
+    --code-bg: #232a33;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5;
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 60rem; margin: 0 auto; padding: 1rem 1rem 3rem; }
+a { color: inherit; }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 1rem; top: 1rem; background: var(--card); padding: .5rem; z-index: 5; }
+h1 { font-size: 1.4rem; margin: 1.2rem 0 .6rem; }
+h2 { font-size: 1.15rem; margin: 2rem 0 .4rem; overflow-wrap: anywhere; }
+h3 { font-size: 1rem; margin: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1rem 1.2rem; margin: .8rem 0; }
+.summary { border-width: 3px; }
+.summary.pass { border-color: var(--pass-bd); background: var(--pass-bg); color: var(--pass-fg); }
+.summary.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.summary.fail { border-color: var(--fail-bd); background: var(--fail-bg); color: var(--fail-fg); }
+.summary .verdict { font-size: 1.9rem; font-weight: 700; margin: 0; }
+.summary .headline { font-size: 1.15rem; margin: .2rem 0 .6rem; font-weight: 600; }
+.counts { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.counts li { border: 1px solid currentColor; border-radius: 999px; padding: .1rem .7rem;
+  font-weight: 600; background: rgba(255,255,255,.35); }
+.badge { display: inline-block; border: 2px solid; border-radius: 6px; padding: 0 .45rem;
+  font-weight: 700; font-size: .85rem; white-space: nowrap; }
+.badge.pass { background: var(--pass-bg); color: var(--pass-fg); border-color: var(--pass-bd); }
+.badge.warn { background: var(--warn-bg); color: var(--warn-fg); border-color: var(--warn-bd); }
+.badge.fail { background: var(--fail-bg); color: var(--fail-fg); border-color: var(--fail-bd); }
+.badge.na, .badge.info { background: var(--info-bg); color: var(--info-fg); border-color: var(--info-bd); }
+table { border-collapse: collapse; width: 100%; background: var(--card); }
+caption { text-align: left; font-weight: 600; padding: .4rem 0; }
+th, td { border: 1px solid var(--border); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+td.num, th.num { text-align: right; }
+.table-wrap { overflow-x: auto; }
+.finding { border-left: 6px solid var(--border); }
+.finding.error { border-left-color: var(--fail-bd); }
+.finding.warning { border-left-color: var(--warn-bd); }
+.finding.note { border-left-color: var(--info-bd); }
+.finding header { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+.finding h4 { margin: .8rem 0 .1rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); }
+.finding p { margin: 0; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em;
+  background: var(--code-bg); border-radius: 4px; padding: 0 .25rem; }
+details { margin-top: .7rem; }
+summary { cursor: pointer; font-weight: 600; }
+summary:focus-visible, a:focus-visible { outline: 3px solid var(--info-bd); outline-offset: 2px; }
+details > div { margin-top: .5rem; color: var(--muted); }
+.muted { color: var(--muted); }
+footer { margin-top: 2.5rem; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--border);
+  padding-top: .8rem; }
+@media print { body { background: #fff; } details { display: block; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#findings">Skip to findings</a>
+<main>
+<h1>Preflight report</h1>
+
+<section class="card summary {{ verdict|lower }}" aria-labelledby="summary-title">
+  <p class="verdict" id="summary-title"><span aria-hidden="true">{{ symbols[verdict] }}</span> {{ verdict }}</p>
+  <p class="headline">{{ report.headline }}</p>
+  <ul class="counts" aria-label="Totals">
+    <li><span aria-hidden="true">{{ symbols['FAIL'] }}</span> {{ report.summary.errors }} {{ 'error' if report.summary.errors == 1 else 'errors' }}</li>
+    <li><span aria-hidden="true">{{ symbols['WARN'] }}</span> {{ report.summary.warnings }} {{ 'warning' if report.summary.warnings == 1 else 'warnings' }}</li>
+    <li><span aria-hidden="true">{{ symbols['INFO'] }}</span> {{ report.summary.infos }} {{ 'note' if report.summary.infos == 1 else 'notes' }}</li>
+    <li>{{ report.summary.checks_run }} checks run{% if report.summary.checks_skipped %}, {{ report.summary.checks_skipped }} skipped{% endif %}</li>
+  </ul>
+  {% if report.strict %}<p>Strict mode is on: warnings count as errors.</p>{% endif %}
+</section>
+
+<div class="table-wrap">
+<table>
+  <caption>Files checked</caption>
+  <thead><tr><th scope="col">File</th><th scope="col">Type</th><th scope="col" class="num">Errors</th><th scope="col" class="num">Warnings</th><th scope="col" class="num">Notes</th><th scope="col">Result</th></tr></thead>
+  <tbody>
+  {% for f in files %}
+  <tr>
+    <th scope="row"><a href="#{{ f.anchor }}" class="mono">{{ f.result.path }}</a></th>
+    <td>{{ f.kind_label }}</td>
+    <td class="num">{{ f.errors }}</td><td class="num">{{ f.warnings }}</td><td class="num">{{ f.notes }}</td>
+    <td><span class="badge {{ f.verdict|lower|replace('/', '') }}"><span aria-hidden="true">{{ symbols[f.verdict] }}</span> {{ f.verdict }}</span></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<div id="findings"></div>
+{% for f in files %}
+<section aria-labelledby="{{ f.anchor }}">
+  <h2 id="{{ f.anchor }}"><span class="mono">{{ f.result.path }}</span>
+    <span class="badge {{ f.verdict|lower|replace('/', '') }}"><span aria-hidden="true">{{ symbols[f.verdict] }}</span> {{ f.verdict }}</span></h2>
+  <p class="muted">{{ f.kind_label }}.
+    {% if f.result.checks_run %}{{ f.result.checks_passed|length }} of {{ f.result.checks_run|length }} checks found nothing to report{% if f.result.checks_passed %} ({{ f.result.checks_passed|join(', ') }}){% endif %}.
+    {% else %}No checks ran on this file directly; it is used as the comparison for the other files.{% endif %}</p>
+  {% for item in f.result.findings %}
+  {% set sev = sev_word[item.severity] %}
+  <article class="card finding {{ sev|lower }}">
+    <header>
+      <span class="badge {{ 'fail' if sev == 'Error' else ('warn' if sev == 'Warning' else 'info') }}"><span aria-hidden="true">{{ sev_symbol[item.severity] }}</span> {{ sev }}</span>
+      <span class="mono">{{ item.check_id }}</span>
+      <h3>{{ item.title }}</h3>
+    </header>
+    <h4>What this means</h4>
+    <p>{{ item.message }}</p>
+    <h4>{{ 'What to do' if item.severity.value == 'INFO' else 'How to fix' }}</h4>
+    <p>{{ item.fix }}</p>
+    <details>
+      <summary>Technical detail</summary>
+      <div>
+        <p>{{ item.detail }}</p>
+        {% if item.technical %}<p><strong>Evidence:</strong> <span class="mono">{{ item.technical }}</span></p>{% endif %}
+        <p>More: <code>preflight explain {{ item.check_id }}</code></p>
+      </div>
+    </details>
+  </article>
+  {% endfor %}
+</section>
+{% endfor %}
+
+{% if report.skipped %}
+<section aria-labelledby="skipped-title">
+  <h2 id="skipped-title">Checks that did not run</h2>
+  <details>
+    <summary>{{ report.skipped|length }} skipped</summary>
+    <div>
+      <ul>
+      {% for s in report.skipped %}
+        <li><span class="mono">{{ s.check_id }}</span> {{ s.title }}{% if s.file %} (<span class="mono">{{ s.file }}</span>){% endif %}: {{ s.reason }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  </details>
+</section>
+{% endif %}
+
+<footer>
+  ngs-preflight {{ report.tool.version }} &middot; report format {{ report.schema_version }} &middot; generated {{ report.generated_at }}{% if report.duration_seconds is not none %} &middot; run time {{ '%.2f'|format(report.duration_seconds) }} s{% endif %}
+  <br>This report checks file formats and consistency. It is not a clinical or scientific validation.
+</footer>
+</main>
+</body>
+</html>

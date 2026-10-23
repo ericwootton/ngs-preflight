@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.gz binary
+*.somalier binary
+*.png binary
+examples/messy/targets.bed -text
+tests/data/**/crlf* -text
+tests/data/** -text
