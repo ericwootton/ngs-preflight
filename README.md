@@ -7,6 +7,8 @@ Check the inputs of a sequencing analysis (target BED, sample sheet, reference, 
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)](pyproject.toml)
 [![Checks coverage](https://img.shields.io/badge/checks%20coverage-%E2%89%A590%25%20enforced%20in%20CI-brightgreen)](.github/workflows/ci.yml)
 
+Documentation, the check catalogue and example reports: **<https://ericwootton.github.io/ngs-preflight/>**
+
 ## Report at a glance
 
 The HTML report for the deliberately broken [`examples/messy`](examples/messy) submission (the full file is
@@ -108,7 +110,7 @@ flowchart LR
 src/ngs_preflight/    the package: checks/, report/, identity/, cli.py, runner.py
 tests/                pytest suite; tests/data holds one fixture per failure mode and the somalier trio
 examples/             good and messy submissions, and generated reports in examples/reports/
-docs/                 checks.md and report.schema.json (generated), for-customers.md, json-report.md
+docs/                 the documentation site (mkdocs.yml); checks.md and report.schema.json are generated
 scripts/              build_examples.py, check_coverage.py
 Dockerfile            python:3.12-slim, non-root
 CLAUDE.md             conventions for working on this repository

@@ -30,6 +30,8 @@ First release: the core checks, four report formats and the optional identity ch
 - `preflight explain <ID>`, `preflight fix-bed` (writes a corrected copy, never edits in place)
   and `preflight docs` (generates `docs/checks.md` and `docs/report.schema.json`).
 - A Dockerfile (non-root), a pre-commit configuration and a GitHub Actions workflow.
+- A documentation site (MkDocs, published to GitHub Pages by `.github/workflows/docs.yml`) with
+  the check catalogue and the example reports; `preflight explain` links to the catalogue entry.
 - Examples: a "good" and a "messy" submission with generated reports in `examples/reports/`.
 - Real somalier fixtures for the GIAB trio HG002, HG003 and HG004, and the engineered failures
   built from them (`docs/identity-fixtures.md`). relate is run without a pedigree, because with

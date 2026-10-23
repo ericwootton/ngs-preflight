@@ -15,3 +15,7 @@ htmlcov/
 *.fixed.bed
 # local scratch
 /scratch/
+
+# docs site build (generated)
+site/
+docs/examples/

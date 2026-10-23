@@ -11,6 +11,7 @@ from rich.text import Text
 
 from ngs_preflight.models import Finding, Report, Severity
 from ngs_preflight.report.common import counts, file_verdict, label, overall_verdict
+from ngs_preflight.util import plural
 
 _STYLE = {
     "PASS": "bold green",
@@ -50,8 +51,9 @@ def render_text(report: Report, color: bool = False, width: int = 100) -> str:
     s = report.summary
     console.print(
         Text(
-            f"ngs-preflight {report.tool.version} | {s.errors} errors, {s.warnings} warnings, "
-            f"{s.infos} notes | {s.checks_run} checks run, {s.checks_skipped} skipped"
+            f"ngs-preflight {report.tool.version} | {plural(s.errors, 'error')}, "
+            f"{plural(s.warnings, 'warning')}, {plural(s.infos, 'note')} | "
+            f"{plural(s.checks_run, 'check')} run, {s.checks_skipped} skipped"
             + (" | strict mode" if report.strict else ""),
             style="dim",
         )

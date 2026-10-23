@@ -97,6 +97,7 @@ def test_explain_every_check(capsys: pytest.CaptureFixture[str]) -> None:
         out = capsys.readouterr().out
         assert out.startswith(f"{spec.id}: {spec.title}")
         assert "How to fix it:" in out
+        assert f"ngs-preflight/checks/#{spec.id.lower()}" in out
 
 
 def test_explain_suggests_close_ids(capsys: pytest.CaptureFixture[str]) -> None:
@@ -266,3 +267,10 @@ def test_python_m_entry_point() -> None:
         check=False,
     )
     assert proc.returncode == 0 and __version__ in proc.stdout
+
+
+def test_summary_counts_agree_in_number() -> None:
+    good = (Path(__file__).resolve().parents[1] / "examples" / "reports" / "good.md").read_text(
+        "utf-8"
+    )
+    assert "0 errors, 0 warnings, 1 note. 20 checks run" in good

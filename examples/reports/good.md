@@ -2,7 +2,7 @@
 
 **Ready to run.**
 
-0 errors, 0 warnings, 1 notes. 20 checks run, 3 skipped.
+0 errors, 0 warnings, 1 note. 20 checks run, 3 skipped.
 
 | File | Type | Errors | Warnings | Notes | Result |
 |---|---|---:|---:|---:|---|

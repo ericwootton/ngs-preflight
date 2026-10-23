@@ -1,0 +1,55 @@
+site_name: ngs-preflight
+site_description: Check sequencing-analysis inputs before the first run, with problems explained in plain language
+site_url: https://ericwootton.github.io/ngs-preflight/
+repo_url: https://github.com/ericwootton/ngs-preflight
+edit_uri: ""
+docs_dir: docs
+strict: true
+exclude_docs: |
+  requirements.txt
+copyright: >-
+  Built from the <a href="https://github.com/ericwootton/ngs-preflight">ngs-preflight</a> repository.
+  MIT licence. Not a clinical tool.
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle: {icon: material/weather-night, name: Dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle: {icon: material/weather-sunny, name: Light mode}
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+
+nav:
+  - Home: index.md
+  - Example reports: examples.md
+  - Check catalogue: checks.md
+  - For customers: for-customers.md
+  - JSON report: json-report.md
+  - Identity test fixtures: identity-fixtures.md
+  - Changelog: changelog.md

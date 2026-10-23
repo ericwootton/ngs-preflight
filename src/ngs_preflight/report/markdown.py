@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ngs_preflight.models import Report
 from ngs_preflight.report.common import KIND_LABELS, counts, file_verdict, label, overall_verdict
+from ngs_preflight.util import plural
 
 
 def _cell(text: str) -> str:
@@ -18,8 +19,8 @@ def render_markdown(report: Report) -> str:
     out.append("")
     s = report.summary
     out.append(
-        f"{s.errors} errors, {s.warnings} warnings, {s.infos} notes. "
-        f"{s.checks_run} checks run, {s.checks_skipped} skipped."
+        f"{plural(s.errors, 'error')}, {plural(s.warnings, 'warning')}, {plural(s.infos, 'note')}. "
+        f"{plural(s.checks_run, 'check')} run, {s.checks_skipped} skipped."
         + (" Strict mode: warnings count as errors." if report.strict else "")
     )
     out.append("")

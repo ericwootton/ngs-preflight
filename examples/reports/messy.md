@@ -2,7 +2,7 @@
 
 **Fix 8 errors before submitting (and 7 warnings to review).**
 
-8 errors, 7 warnings, 1 notes. 20 checks run, 3 skipped.
+8 errors, 7 warnings, 1 note. 20 checks run, 3 skipped.
 
 | File | Type | Errors | Warnings | Notes | Result |
 |---|---|---:|---:|---:|---|

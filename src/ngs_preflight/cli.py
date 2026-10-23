@@ -28,6 +28,7 @@ from ngs_preflight.runner import Options, run_preflight
 
 EXIT_PASS, EXIT_ERRORS, EXIT_WARNINGS, EXIT_USAGE = 0, 1, 2, 3
 FORMATS = ("text", "json", "markdown", "html")
+CATALOGUE_URL = "https://ericwootton.github.io/ngs-preflight/checks/"
 
 
 class _Parser(argparse.ArgumentParser):
@@ -197,7 +198,7 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     ]
     if spec.notes:
         lines += ["", "Notes:", *[wrap("  " + p) for p in spec.notes.split("\n\n")]]
-    lines += ["", f"Catalogue: docs/checks.md#{anchor(spec.id)}"]
+    lines += ["", f"Catalogue: {CATALOGUE_URL}#{anchor(spec.id)}"]
     print("\n".join(lines))
     return EXIT_PASS
 
