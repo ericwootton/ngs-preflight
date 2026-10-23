@@ -122,7 +122,7 @@ def test_swapped_father_and_son_is_id002_on_the_other_parent() -> None:
     found = _findings("trio_swapped.csv")
     assert set(found) == {"ID002"}
     assert len(found["ID002"]) == 1
-    assert '"HG004" is the mother of "HG003"' in found["ID002"][0]
+    assert 'lists "HG004" as the mother of "HG003"' in found["ID002"][0]
 
 
 @somalier
@@ -130,7 +130,7 @@ def test_swapped_father_and_son_is_id002_on_the_other_parent() -> None:
 def test_wrong_declared_sex_is_id004() -> None:
     found = _findings("trio_wrong_sex.csv")
     assert set(found) == {"ID004"}
-    assert '"HG002" is female' in found["ID004"][0]
+    assert 'lists "HG002" as female' in found["ID004"][0]
 
 
 @somalier
