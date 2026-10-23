@@ -37,5 +37,6 @@ def mate_marker(filename: str) -> tuple[str, str] | None:
     matches = list(_R_TOKEN.finditer(stem))
     if not matches:
         return None
-    m = matches[-1]
+    with_r = [x for x in matches if x.group(1)]  # prefer R1/R2 over a bare 1 or 2
+    m = (with_r or matches)[-1]
     return stem[: m.start()] + "R#" + stem[m.end() :], m.group(2)

@@ -8,6 +8,7 @@ Every path handed to somalier must be visible to that command (mount it when usi
 from __future__ import annotations
 
 import csv
+import os
 import shlex
 import shutil
 import struct
@@ -18,6 +19,16 @@ from pathlib import Path
 SUPPORTED_VERSION = "0.3.5"
 SOMALIER_SUFFIX = ".somalier"
 EXTRACTABLE_SUFFIXES = (".bam", ".cram", ".vcf", ".vcf.gz", ".bcf", ".g.vcf.gz")
+
+
+def split_command(text: str, windows: bool | None = None) -> list[str]:
+    """Split a command line. On Windows, backslashes are path separators, not escapes."""
+    if windows is None:
+        windows = os.name == "nt"
+    if not windows:
+        return shlex.split(text, posix=True)
+    parts = shlex.split(text, posix=False)
+    return [p[1:-1] if len(p) > 1 and p[0] == p[-1] == '"' else p for p in parts]
 
 
 class SomalierError(Exception):
@@ -171,7 +182,7 @@ def parse_pairs_tsv(path: Path) -> list[SomalierPair]:
 class SomalierRunner:
     def __init__(self, cmd: str | None = None) -> None:
         self.cmd_text = cmd or "somalier"
-        self.cmd = shlex.split(self.cmd_text, posix=True)
+        self.cmd = split_command(self.cmd_text)
 
     def available(self) -> tuple[bool, str]:
         """(True, version line) if somalier runs; else (False, plain-language reason)."""

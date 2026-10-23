@@ -79,3 +79,21 @@ def test_write_never_overwrites(tmp_path: Path) -> None:
     with pytest.raises(PreflightError, match="refusing to overwrite the input"):
         write_fixed(src, src, FixOptions(), force=True)
     assert src.read_bytes() == RAW
+
+
+def test_gz_output_is_real_gzip(tmp_path: Path) -> None:
+    import gzip
+
+    src = tmp_path / "t.bed"
+    src.write_bytes(RAW)
+    dst, _ = write_fixed(src, tmp_path / "out.bed.gz", FixOptions(add_chr=True))
+    assert gzip.decompress(dst.read_bytes()).startswith(b"chr1\t500")
+
+
+def test_refuses_same_file_even_with_different_spelling(tmp_path: Path) -> None:
+    src = tmp_path / "t.bed"
+    src.write_bytes(RAW)
+    alias = tmp_path / "." / "t.bed"  # the same file, spelled differently
+    with pytest.raises(PreflightError, match="refusing to overwrite the input"):
+        write_fixed(src, alias, FixOptions(), force=True)
+    assert src.read_bytes() == RAW

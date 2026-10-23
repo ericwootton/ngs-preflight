@@ -33,6 +33,7 @@ def test_chr_helpers() -> None:
     assert strip_chr("chrM") == "MT"
     assert add_chr("1") == "chr1"
     assert add_chr("MT") == "chrM"
+    assert add_chr("M") == "chrM"
     assert add_chr("chr2") == "chr2"
     assert add_chr("GL000207.1") == "GL000207.1"
     assert is_alt_like("chr1_KI270706v1_random")
@@ -161,18 +162,26 @@ def test_gzip_large_file_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     good.write_bytes(gzip.compress(b"hello\n" * 1000))
     res = check_gzip(good)
     assert res.ok and not res.verified_fully
-    good.write_bytes(good.read_bytes()[:-30])
-    # The head decompresses without error but the trailer is not plausible or the stream is cut.
-    check_gzip(good)
     corrupt = tmp_path / "c.gz"
     data = bytearray(gzip.compress(b"x" * 5000))
     data[15] ^= 0xFF
     corrupt.write_bytes(bytes(data))
     assert not check_gzip(corrupt).ok
-    zero = tmp_path / "z.gz"
-    zero.write_bytes(gzip.compress(b""))
-    monkeypatch.setattr(gzcheck, "FULL_VERIFY_LIMIT", 5)
-    assert "zero" in check_gzip(zero).problem
+
+
+def test_gzip_member_ending_at_chunk_boundary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Two members; the first ends one byte before a read-chunk boundary (a split gzip magic)."""
+    first = gzip.compress(b"a" * 100, mtime=0)
+    second = gzip.compress(b"b" * 100, mtime=0)
+    monkeypatch.setattr(gzcheck, "_CHUNK", len(first) + 1)
+    p = tmp_path / "multi.gz"
+    p.write_bytes(first + second)
+    res = check_gzip(p)
+    assert res.ok, res.problem
+    p.write_bytes(first + second + b"\x1f")  # one stray byte at the very end
+    assert not check_gzip(p).ok
 
 
 def test_fastq_helpers(tmp_path: Path) -> None:
@@ -182,6 +191,8 @@ def test_fastq_helpers(tmp_path: Path) -> None:
     assert mate_marker("S1_R1_001.fastq.gz") == ("S1_R#_001", "1")
     assert mate_marker("S1_R2_001.fastq.gz") == ("S1_R#_001", "2")
     assert mate_marker("sample.fastq.gz") is None
+    assert mate_marker("sample_R1_part-1.fastq.gz") == ("sample_R#_part-1", "1")
+    assert mate_marker("sample_R2_part-1.fastq.gz") == ("sample_R#_part-1", "2")
 
 
 def test_bed_parsing_details(tmp_path: Path) -> None:

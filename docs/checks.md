@@ -160,7 +160,7 @@ Intervals are sorted per chromosome. An interval that starts before the furthest
 
 **How it works**
 
-Heuristic, and deliberately conservative. It looks for two kinds of evidence and only warns when one is strong. (1) Gap pattern: among neighbouring non-overlapping regions on a chromosome, at least 5 are separated by exactly 1 base, at least 3 times as many as touch directly, and they make up at least 10% of neighbour pairs. (2) Name pattern: at least 5 region names embed a coordinate pair (such as chr1:101-200) that equals start+1 and end, and at least 5 times as many as match start and end exactly. A start of 0 anywhere rules out 1-based and silences the check. Sparse target lists carry no such patterns, so most 1-based files cannot be detected.
+Heuristic, and deliberately conservative. It looks for one kind of evidence: among neighbouring non-overlapping regions on a chromosome, at least 5 are separated by exactly 1 base, at least 3 times as many as touch directly, and they make up at least 10% of neighbour pairs. A start of 0 anywhere rules out 1-based and silences the check. Sparse target lists carry no such pattern, so most 1-based files cannot be detected.
 
 **Suggested fix**
 
@@ -170,8 +170,9 @@ Heuristic, and deliberately conservative. It looks for two kinds of evidence and
 
 **Why a heuristic.** A BED file does not say which convention it uses, and a shifted file is still valid BED. The only evidence available is indirect, so this check looks for patterns that are rare in genuine 0-based files:
 
-1. *Exactly-one-base gaps between neighbours.* Adjacent 0-based half-open regions that tile a stretch of genome share a boundary (the next start equals the previous end). The same regions written as 1-based closed intervals show a gap of exactly 1 between them. A gap of exactly 1 base is rare by chance (gaps between targets are usually tens to thousands of bases), so a file with many of them and few direct touches is suspicious.
-2. *Coordinates written in the name column.* Names such as `chr1:101-200` or `amp_101_200` record the source coordinates. If they equal `start+1` and `end` rather than `start` and `end`, the source was 1-based.
+*Exactly-one-base gaps between neighbours.* Adjacent 0-based half-open regions that tile a stretch of genome share a boundary (the next start equals the previous end). The same regions written as 1-based closed intervals show a gap of exactly 1 between them. A gap of exactly 1 base is rare by chance (gaps between targets are usually tens to thousands of bases), so a file with many of them and few direct touches is suspicious.
+
+*What is deliberately not used.* Coordinates written in the name column (for example `chr1:101-200` on a region with start 100) are not evidence either way: a correct 0-based file is often named with 1-based coordinates, and a careless one with its raw columns, so names cannot tell the two apart.
 
 A `start` of 0 is impossible in a 1-based file, so any such interval silences the check. The thresholds are fixed in code (`ONE_BASED_MIN_EVIDENCE = 5` and the ratios above). The check has false negatives by design: sparse lists, such as a capture panel with well-separated exons, carry no pattern, and detecting those would need an annotation (exon starts from a known gene model), which ngs-preflight does not ship. It is meant to avoid false alarms, so it stays silent when unsure.
 

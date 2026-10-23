@@ -34,7 +34,7 @@ def strip_chr(name: str) -> str:
 
 def add_chr(name: str) -> str:
     """Name with a ``chr`` prefix added for primary contigs (``MT`` becomes ``chrM``)."""
-    if name == "MT":
+    if name in {"MT", "M"}:
         return "chrM"
     if name.startswith("chr"):
         return name

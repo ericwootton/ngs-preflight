@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import itertools
-import re
 import statistics
 from collections.abc import Iterator
 from pathlib import PurePath
@@ -264,7 +262,7 @@ def sort_problem(
     in_ref_order = False
     if ref_order is not None:
         known = [ref_order[b] for b in blocks if b in ref_order]
-        in_ref_order = known == sorted(known)
+        in_ref_order = bool(known) and known == sorted(known)
     if alphabetical or in_ref_order:
         return None
     return ("the chromosomes are in neither reference order nor alphabetical order", len(blocks))
@@ -367,9 +365,6 @@ def bed006(ctx: BedContext) -> Iterator[Hit]:
         )
 
 
-_NUMBER = re.compile(r"\d+")
-
-
 def one_based_evidence(intervals: list[Interval]) -> dict[str, int]:
     """Counts used by the BED007 heuristic. See docs/checks.md for the reasoning."""
     gap0 = gap1 = pairs = 0
@@ -384,27 +379,11 @@ def one_based_evidence(intervals: list[Interval]) -> dict[str, int]:
                 gap0 += gap == 0
                 gap1 += gap == 1
             reach = max(reach, end)
-    name_plus1 = name_exact = named = 0
-    for iv in intervals:
-        if not iv.name:
-            continue
-        nums = [int(x) for x in _NUMBER.findall(iv.name)]
-        if len(nums) < 2:
-            continue
-        named += 1
-        in_name = set(itertools.pairwise(nums))
-        if (iv.start + 1, iv.end) in in_name:
-            name_plus1 += 1
-        if (iv.start, iv.end) in in_name:
-            name_exact += 1
     return {
         "pairs": pairs,
         "gap0": gap0,
         "gap1": gap1,
         "zero_start": zero_start,
-        "named_with_coords": named,
-        "name_start_plus1": name_plus1,
-        "name_start_exact": name_exact,
     }
 
 
@@ -423,14 +402,6 @@ def one_based_reasons(ev: dict[str, int]) -> list[str]:
             f"only {ev['gap0']} touch directly, which is what back-to-back regions look like when "
             "both ends are counted inclusively"
         )
-    if (
-        ev["name_start_plus1"] >= ONE_BASED_MIN_EVIDENCE
-        and ev["name_start_plus1"] >= 5 * ev["name_start_exact"]
-    ):
-        reasons.append(
-            f"{ev['name_start_plus1']} region names contain coordinates that equal the BED start "
-            "plus one"
-        )
     return reasons
 
 
@@ -445,14 +416,11 @@ def one_based_reasons(ev: dict[str, int]) -> list[str]:
         "every edge."
     ),
     detail=(
-        "Heuristic, and deliberately conservative. It looks for two kinds of evidence and only "
-        "warns when one is strong. (1) Gap pattern: among neighbouring non-overlapping regions on "
-        "a chromosome, at least 5 are separated by exactly 1 base, at least 3 times as many as "
-        "touch directly, and they make up at least 10% of neighbour pairs. (2) Name pattern: at "
-        "least 5 region names embed a coordinate pair (such as chr1:101-200) that equals "
-        "start+1 and end, and at least 5 times as many as match start and end exactly. "
-        "A start of 0 anywhere rules out 1-based and silences the check. Sparse target lists "
-        "carry no such patterns, so most 1-based files cannot be detected."
+        "Heuristic, and deliberately conservative. It looks for one kind of evidence: among "
+        "neighbouring non-overlapping regions on a chromosome, at least 5 are separated by "
+        "exactly 1 base, at least 3 times as many as touch directly, and they make up at least "
+        "10% of neighbour pairs. A start of 0 anywhere rules out 1-based and silences the check. "
+        "Sparse target lists carry no such pattern, so most 1-based files cannot be detected."
     ),
     fix=(
         "Check how the file was produced. If the coordinates came from a spreadsheet, a "
@@ -465,14 +433,15 @@ def one_based_reasons(ev: dict[str, int]) -> list[str]:
         "**Why a heuristic.** A BED file does not say which convention it uses, and a shifted "
         "file is still valid BED. The only evidence available is indirect, so this check looks "
         "for patterns that are rare in genuine 0-based files:\n\n"
-        "1. *Exactly-one-base gaps between neighbours.* Adjacent 0-based half-open regions that "
+        "*Exactly-one-base gaps between neighbours.* Adjacent 0-based half-open regions that "
         "tile a stretch of genome share a boundary (the next start equals the previous end). The "
         "same regions written as 1-based closed intervals show a gap of exactly 1 between them. "
         "A gap of exactly 1 base is rare by chance (gaps between targets are usually tens to "
-        "thousands of bases), so a file with many of them and few direct touches is suspicious.\n"
-        "2. *Coordinates written in the name column.* Names such as `chr1:101-200` or "
-        "`amp_101_200` record the source coordinates. If they equal `start+1` and `end` rather "
-        "than `start` and `end`, the source was 1-based.\n\n"
+        "thousands of bases), so a file with many of them and few direct touches is suspicious.\n\n"
+        "*What is deliberately not used.* Coordinates written in the name column (for example "
+        "`chr1:101-200` on a region with start 100) are not evidence either way: a correct "
+        "0-based file is often named with 1-based coordinates, and a careless one with its raw "
+        "columns, so names cannot tell the two apart.\n\n"
         "A `start` of 0 is impossible in a 1-based file, so any such interval silences the "
         "check. The thresholds are fixed in code (`ONE_BASED_MIN_EVIDENCE = 5` and the ratios "
         "above). The check has false negatives by design: sparse lists, such as a capture panel "

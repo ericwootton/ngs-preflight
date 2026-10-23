@@ -111,7 +111,8 @@ def parse_samplesheet_text(text: str, path: str = "<memory>") -> SampleSheet:
     if not first:
         sheet.empty = True
         return sheet
-    sheet.delimiter = "\t" if first.count("\t") > first.count(",") else ","
+    tabs, commas = first.count("\t"), first.count(",")
+    sheet.delimiter = "\t" if tabs and tabs >= commas else ","
     reader = csv.reader(io.StringIO(text), delimiter=sheet.delimiter)
     header_seen = False
     for row in reader:

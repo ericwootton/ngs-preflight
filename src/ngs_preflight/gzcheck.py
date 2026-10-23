@@ -7,13 +7,12 @@ Strategy, chosen so that the check stays fast on multi-gigabyte files:
   which is what a truncated download or an interrupted copy loses;
 * other gzip files up to ``FULL_VERIFY_LIMIT`` bytes: the whole stream is decompressed
   and its CRC is verified;
-* larger non-BGZF gzip files cannot be proven complete cheaply; the tail is checked for
-  a plausible trailer only, and the result says so.
+* larger non-BGZF gzip files cannot be proven complete cheaply (deflate cannot be read
+  backwards, and the size in the trailer is only 32 bits), so only the head is checked.
 """
 
 from __future__ import annotations
 
-import struct
 import zlib
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,6 +40,7 @@ def _inflate_prefix(path: Path, limit: int | None) -> tuple[bool, str]:
     """Inflate up to ``limit`` compressed bytes (all if None). Returns (ok, problem)."""
     decomp = zlib.decompressobj(wbits=31)
     in_member = False
+    pending = b""  # bytes after a member's end that are too short to tell what they are yet
     consumed = 0
     try:
         with path.open("rb") as handle:
@@ -49,22 +49,30 @@ def _inflate_prefix(path: Path, limit: int | None) -> tuple[bool, str]:
                 if not chunk:
                     break
                 consumed += len(chunk)
-                data = chunk
+                data = pending + chunk
+                pending = b""
                 while data:
+                    if not in_member:
+                        if len(data) < len(GZIP_MAGIC):
+                            pending = data
+                            break
+                        if data[:2] != GZIP_MAGIC:
+                            return False, "unexpected bytes after the end of a compressed block"
                     in_member = True
                     decomp.decompress(data)
                     if decomp.eof:
                         data = decomp.unused_data
                         decomp = zlib.decompressobj(wbits=31)
                         in_member = False
-                        if data and data[:2] != GZIP_MAGIC:
-                            return False, "unexpected bytes after the end of a compressed block"
                     else:
                         data = b""
     except (zlib.error, OSError) as exc:
         return False, f"decompression failed: {exc}"
-    if limit is None and in_member:
-        return False, "the compressed data ends unexpectedly (the file looks truncated)"
+    if limit is None:
+        if in_member:
+            return False, "the compressed data ends unexpectedly (the file looks truncated)"
+        if pending:
+            return False, "unexpected bytes after the end of a compressed block"
     return True, ""
 
 
@@ -91,14 +99,7 @@ def check_gzip(path: str | Path) -> GzipResult:
         ok, problem = _inflate_prefix(p, None)
         return GzipResult(ok, problem, verified_fully=ok)
     ok, problem = _inflate_prefix(p, HEAD_BYTES)
-    if not ok:
-        return GzipResult(False, problem)
-    with p.open("rb") as handle:
-        handle.seek(-8, 2)
-        _crc, isize = struct.unpack("<II", handle.read(8))
-    if isize == 0:
-        return GzipResult(False, "the gzip trailer reports zero bytes of content")
-    return GzipResult(True, "", verified_fully=False)
+    return GzipResult(ok, problem, verified_fully=False)
 
 
 __all__ = ["BGZF_EOF", "GzipResult", "check_gzip"]

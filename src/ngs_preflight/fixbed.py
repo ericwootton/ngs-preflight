@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import gzip
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -184,7 +186,7 @@ def write_fixed(
         )
     else:
         dst_path = Path(dst)
-    if dst_path.exists() and dst_path.resolve() == src_path.resolve():
+    if dst_path.exists() and os.path.samefile(dst_path, src_path):
         raise PreflightError(
             "refusing to overwrite the input file: fix-bed always writes a new file. "
             "Choose a different --out name."
@@ -192,5 +194,8 @@ def write_fixed(
     if dst_path.exists() and not force:
         raise PreflightError(f"{dst_path} already exists; choose another --out name or use --force")
     lines, summary = fix_bed(bed, opts)
-    dst_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8", newline="\n")
+    body = ("\n".join(lines) + ("\n" if lines else "")).encode("utf-8")
+    if dst_path.name.lower().endswith(".gz"):
+        body = gzip.compress(body, mtime=0)
+    dst_path.write_bytes(body)
     return dst_path, summary

@@ -20,6 +20,7 @@ from ngs_preflight.identity.somalier import (
     parse_samples_tsv,
     read_somalier_sample_id,
     rewrite_somalier_sample_id,
+    split_command,
 )
 from ngs_preflight.models import Report
 from ngs_preflight.samplesheet import parse_samplesheet_text
@@ -270,3 +271,11 @@ def test_declared_and_ped(tmp_path: Path) -> None:
     assert ped.read_text().splitlines()[0].split("\t") == ["F", "kid", "dad", "0", "1", "-9"]
     assert not write_ped(declared, set(), ped)
     assert write_ped({"z": Declared("z", None, None, None, None)}, {"z"}, ped)
+
+
+def test_split_command_keeps_windows_backslashes() -> None:
+    sep = chr(92)  # a backslash
+    exe = f"C:{sep}tools{sep}somalier.exe"
+    assert split_command(f'"{exe}" extract', windows=True) == [exe, "extract"]
+    assert split_command(exe, windows=True) == [exe]
+    assert split_command("docker run --rm img somalier", windows=False)[0] == "docker"
