@@ -150,7 +150,7 @@ Evidence: Lines: 5
 
 Relative paths are resolved against --reads-dir; absolute paths are used as written. Paths that are URLs (s3://, gs://, https://, ...) cannot be checked and are skipped. A file of 0 bytes counts as unreadable.
 
-Evidence: Looked in: examples\messy\reads. S10_R1.fastq.gz (S10): not found; S10_R2.fastq.gz (S10): not found
+Evidence: Looked in: examples/messy/reads. S10_R1.fastq.gz (S10): not found; S10_R2.fastq.gz (S10): not found
 
 </details>
 

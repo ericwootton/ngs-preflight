@@ -53,7 +53,10 @@ GOOD_SHEET = [
 
 
 def fastq_bytes(sample: str, mate: int, n: int = 4, truncate: bool = False) -> bytes:
-    """A tiny, valid, deterministic gzip FASTQ (a few made-up reads)."""
+    """A tiny, valid, deterministic gzip FASTQ (a few made-up reads).
+
+    Stored (level 0) deflate blocks, so the bytes do not depend on the zlib build.
+    """
     lines = []
     for i in range(1, n + 1):
         seq = "ACGT" * 6 + "TTGCA"[: (i % 5) + 1]
@@ -65,7 +68,7 @@ def fastq_bytes(sample: str, mate: int, n: int = 4, truncate: bool = False) -> b
         ]
     raw = ("\n".join(lines) + "\n").encode()
     buf = io.BytesIO()
-    with gzip.GzipFile(fileobj=buf, mode="wb", mtime=0, compresslevel=9) as gz:
+    with gzip.GzipFile(fileobj=buf, mode="wb", mtime=0, compresslevel=0) as gz:
         gz.write(raw)
     data = buf.getvalue()
     return data[: len(data) - 12] if truncate else data

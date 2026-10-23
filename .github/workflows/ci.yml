@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11", "3.12", "3.13"]
+        include:
+          - os: windows-latest
+            python: "3.12"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy --strict src
+      - run: python -m ngs_preflight docs --check
+      - name: Tests with coverage (checks package must stay at or above 90 percent)
+        run: |
+          pytest -m "not somalier" --cov=ngs_preflight --cov-report=term-missing --cov-report=xml
+          python scripts/check_coverage.py coverage.xml ngs_preflight/checks 90
+      - uses: actions/upload-artifact@v7
+        if: matrix.python == '3.12' && matrix.os == 'ubuntu-latest'
+        with:
+          name: coverage-xml
+          path: coverage.xml
+
+  somalier:
+    name: Identity checks with real somalier
+    runs-on: ubuntu-latest
+    container:
+      image: brentp/somalier:v0.3.5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Python
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends python3 python3-pip python3-venv
+      - name: Install package and run the somalier tests
+        run: |
+          python3 -m venv /opt/venv
+          /opt/venv/bin/pip install -e ".[dev]"
+          /opt/venv/bin/pytest -m somalier -v
+        env:
+          PREFLIGHT_SOMALIER_CMD: somalier

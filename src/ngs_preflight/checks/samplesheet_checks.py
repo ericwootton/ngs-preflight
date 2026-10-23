@@ -230,7 +230,7 @@ def ss004(ctx: SheetContext) -> Iterator[Hit]:
                 "why": "" if why == "not found" else f": {why}",
             },
             technical=(
-                f"Looked in: {ctx.reads_dir}. "
+                f"Looked in: {ctx.reads_dir.as_posix() if ctx.reads_dir else ''}. "
                 + "; ".join(f"{v} ({s}): {w}" for v, s, w in problems[:10])
                 + (f". {skipped_urls} URL path(s) not checked." if skipped_urls else "")
             ),

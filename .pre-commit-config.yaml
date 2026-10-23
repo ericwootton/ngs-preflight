@@ -1,0 +1,32 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: ^(tests/data/|examples/)
+      - id: trailing-whitespace
+        exclude: ^(tests/data/|examples/)
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.6
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy --strict
+        entry: python -m mypy --strict src
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: docs-up-to-date
+        name: docs/checks.md matches the check registry
+        entry: python -m ngs_preflight docs --check
+        language: system
+        pass_filenames: false
+        files: ^(src/ngs_preflight/(checks|registry|docs_gen|models)|docs/)
