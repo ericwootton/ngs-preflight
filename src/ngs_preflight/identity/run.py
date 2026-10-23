@@ -14,7 +14,6 @@ from ngs_preflight.identity.somalier import (
     SUPPORTED_VERSION,
     SomalierError,
     SomalierRunner,
-    read_somalier_sample_id,
 )
 from ngs_preflight.registry import checks_for_scope
 from ngs_preflight.samplesheet import SampleSheet, load_schema
@@ -44,23 +43,6 @@ def declared_from_sheet(sheet: SampleSheet | None) -> dict[str, Declared]:
             family=row.family_id,
         )
     return declared
-
-
-def write_ped(declared: dict[str, Declared], present: set[str], path: Path) -> bool:
-    """Write a PED file for the samples that have data. Returns False if there is nothing to say."""
-    lines = []
-    for sid, d in declared.items():
-        if sid not in present:
-            continue
-        father = d.father if d.father in present else "0"
-        mother = d.mother if d.mother in present else "0"
-        family = d.family or d.father or d.mother or sid
-        sex = {"male": "1", "female": "2"}.get(d.sex or "", "0")
-        lines.append(f"{family}\t{sid}\t{father}\t{mother}\t{sex}\t-9")
-    if not lines:
-        return False
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return True
 
 
 def _inputs_from_sheet(sheet: SampleSheet | None, reads_dir: str | None) -> list[Path]:
@@ -129,14 +111,8 @@ def run_identity_checks(opts: Options, sheet: SampleSheet | None, col: _Collecto
             except SomalierError as exc:
                 skip_all(f"somalier could not read {p.name}: {exc}")
                 return
-        names = {read_somalier_sample_id(f) for f in somalier_files}
-        present = {n for n in names if n}
-        ped = tmp_dir / "pedigree.ped"
-        have_ped = write_ped(declared, present, ped)
         try:
-            result = runner.relate(
-                somalier_files, ped if have_ped else None, sites, tmp_dir / "relate"
-            )
+            result = runner.relate(somalier_files, sites, tmp_dir / "relate")
         except SomalierError as exc:
             skip_all(f"somalier relate failed: {exc}")
             return

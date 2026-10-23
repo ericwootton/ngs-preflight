@@ -1,0 +1,83 @@
+{
+  "somalier_version": "0.3.5",
+  "sites": 17766,
+  "samples": {
+    "HG002": {
+      "inferred_sex": "male",
+      "n_hom_ref": 6866,
+      "n_het": 6871,
+      "n_hom_alt": 3647,
+      "n_unknown": 0,
+      "x_het": 1,
+      "x_hom_alt": 134
+    },
+    "HG003": {
+      "inferred_sex": "male",
+      "n_hom_ref": 6895,
+      "n_het": 6863,
+      "n_hom_alt": 3626,
+      "n_unknown": 0,
+      "x_het": 0,
+      "x_hom_alt": 129
+    },
+    "HG004": {
+      "inferred_sex": "female",
+      "n_hom_ref": 6908,
+      "n_het": 6821,
+      "n_hom_alt": 3655,
+      "n_unknown": 0,
+      "x_het": 117,
+      "x_hom_alt": 72
+    }
+  },
+  "pairs": [
+    {
+      "a": "HG002",
+      "b": "HG003",
+      "relatedness": 0.501,
+      "ibs0": 23,
+      "ibs2": 10593,
+      "n": 17384
+    },
+    {
+      "a": "HG002",
+      "b": "HG004",
+      "relatedness": 0.495,
+      "ibs0": 32,
+      "ibs2": 10560,
+      "n": 17384
+    },
+    {
+      "a": "HG003",
+      "b": "HG004",
+      "relatedness": 0.009,
+      "ibs0": 1397,
+      "ibs2": 8015,
+      "n": 17384
+    }
+  ],
+  "scenarios": {
+    "trio": {
+      "engineered": "nothing; the true family",
+      "findings": {}
+    },
+    "duplicate": {
+      "engineered": "HG002 submitted a second time as HG002_copy",
+      "findings": {
+        "ID001": 1
+      }
+    },
+    "swapped": {
+      "engineered": "HG002 (son) and HG003 (father) swapped in the pedigree",
+      "findings": {
+        "ID002": 1
+      }
+    },
+    "wrong_sex": {
+      "engineered": "HG002 declared female in the sheet",
+      "findings": {
+        "ID004": 1
+      }
+    }
+  }
+}

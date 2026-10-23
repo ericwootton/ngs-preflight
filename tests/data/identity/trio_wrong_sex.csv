@@ -1,0 +1,4 @@
+sample_id,fastq_1,fastq_2,sex,family_id,paternal_id,maternal_id
+HG002,HG002_R1.fastq.gz,HG002_R2.fastq.gz,female,AJ,HG003,HG004
+HG003,HG003_R1.fastq.gz,HG003_R2.fastq.gz,male,AJ,,
+HG004,HG004_R1.fastq.gz,HG004_R2.fastq.gz,female,AJ,,

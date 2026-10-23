@@ -48,6 +48,7 @@ class SomalierSample:
     y_depth_mean: float | None = None
     x_het: int | None = None
     x_n: int | None = None
+    x_hom_alt: int | None = None
 
     @property
     def informative_sites(self) -> int:
@@ -137,6 +138,24 @@ def _rows(path: Path) -> list[dict[str, str]]:
 
 _SEX = {"1": "male", "2": "female"}
 
+# Fallback sex call from chrX genotypes, used when somalier gives none (it infers sex from read
+# depth, which a VCF does not carry). A male has one X, so almost no heterozygous calls there.
+MIN_X_SITES = 20
+MALE_X_HET_FRACTION = 0.05
+FEMALE_X_HET_FRACTION = 0.25
+
+
+def sex_from_x_genotypes(x_het: int | None, x_hom_alt: int | None) -> str:
+    """Sex from the share of heterozygous calls among non-reference chrX sites."""
+    if x_het is None or x_hom_alt is None or x_het + x_hom_alt < MIN_X_SITES:
+        return "unknown"
+    fraction = x_het / (x_het + x_hom_alt)
+    if fraction < MALE_X_HET_FRACTION:
+        return "male"
+    if fraction > FEMALE_X_HET_FRACTION:
+        return "female"
+    return "unknown"
+
 
 def parse_samples_tsv(path: Path) -> dict[str, SomalierSample]:
     samples: dict[str, SomalierSample] = {}
@@ -144,9 +163,12 @@ def parse_samples_tsv(path: Path) -> dict[str, SomalierSample]:
         sid = row.get("sample_id", "")
         if not sid:
             continue
+        x_het = _to_int(row.get("X_het")) if "X_het" in row else None
+        x_hom_alt = _to_int(row.get("X_hom_alt")) if "X_hom_alt" in row else None
+        inferred = _SEX.get(row.get("sex", ""))
         samples[sid] = SomalierSample(
             sample_id=sid,
-            inferred_sex=_SEX.get(row.get("sex", ""), "unknown"),
+            inferred_sex=inferred or sex_from_x_genotypes(x_het, x_hom_alt),
             depth_mean=_to_float(row.get("depth_mean")),
             n_hom_ref=_to_int(row.get("n_hom_ref")),
             n_het=_to_int(row.get("n_het")),
@@ -154,8 +176,9 @@ def parse_samples_tsv(path: Path) -> dict[str, SomalierSample]:
             n_unknown=_to_int(row.get("n_unknown")),
             x_depth_mean=_to_float(row.get("X_depth_mean")),
             y_depth_mean=_to_float(row.get("Y_depth_mean")),
-            x_het=_to_int(row.get("X_het")) if "X_het" in row else None,
+            x_het=x_het,
             x_n=_to_int(row.get("X_n")) if "X_n" in row else None,
+            x_hom_alt=x_hom_alt,
         )
     return samples
 
@@ -235,12 +258,10 @@ class SomalierRunner:
             raise SomalierError(f"somalier extract produced no output for {source}")
         return created
 
-    def relate(
-        self, files: list[Path], ped: Path | None, sites: Path | None, out_prefix: Path
-    ) -> IdentityResult:
+    def relate(self, files: list[Path], sites: Path | None, out_prefix: Path) -> IdentityResult:
+        """Run ``somalier relate``. No pedigree is passed: with one, the ``sex`` column echoes
+        the pedigree's sex instead of the sex inferred from the data."""
         args = ["relate", "-o", str(out_prefix)]
-        if ped is not None:
-            args += ["--ped", str(ped)]
         if sites is not None:
             args += ["--sites", str(sites)]
         args += [str(f) for f in files]

@@ -516,7 +516,7 @@ Pairs with relatedness between 0.2 and 0.9 are reported when the sheet gives no 
 
 **How it works**
 
-somalier infers sex per sample from heterozygous calls on chrX and relative depth on chrX and chrY. Reported when the sheet says male or female and somalier infers the opposite. Samples declared unknown, or where somalier cannot decide, are not reported. Needs enough chrX/chrY sites; with very low coverage the call may be absent.
+somalier infers sex per sample from heterozygous calls on chrX and relative depth on chrX and chrY. Reported when the sheet says male or female and somalier infers the opposite. Samples declared unknown, or where somalier cannot decide, are not reported. Needs enough chrX/chrY sites; with very low coverage the call may be absent. When somalier makes no call (it uses read depth, which VCF input does not have), the sex is taken from chrX instead: under 5% heterozygous among non-reference calls is male, over 25% is female, anything else (or fewer than 20 such sites) is unknown.
 
 **Suggested fix**
 

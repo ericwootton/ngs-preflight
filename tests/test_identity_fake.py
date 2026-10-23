@@ -11,9 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from ngs_preflight.context import Declared
 from ngs_preflight.errors import PreflightError
-from ngs_preflight.identity.run import declared_from_sheet, write_ped
+from ngs_preflight.identity.run import declared_from_sheet
 from ngs_preflight.identity.somalier import (
     SomalierRunner,
     parse_pairs_tsv,
@@ -266,11 +265,21 @@ def test_declared_and_ped(tmp_path: Path) -> None:
     assert declared["kid"].father == "dad" and declared["dad"].father is None
     assert declared["mum"].sex == "female"
     assert declared_from_sheet(None) == {}
-    ped = tmp_path / "x.ped"
-    assert write_ped(declared, {"kid", "dad"}, ped)
-    assert ped.read_text().splitlines()[0].split("\t") == ["F", "kid", "dad", "0", "1", "-9"]
-    assert not write_ped(declared, set(), ped)
-    assert write_ped({"z": Declared("z", None, None, None, None)}, {"z"}, ped)
+
+
+def test_sex_falls_back_to_x_genotypes(tmp_path: Path) -> None:
+    rows = (
+        samples_row("m", "-9", x_het=1, x_hom_alt=130)
+        + samples_row("f", "-9", x_het=117, x_hom_alt=72)
+        + samples_row("few", "-9", x_het=2, x_hom_alt=5)
+        + samples_row("mid", "-9", x_het=15, x_hom_alt=85)
+        + samples_row("told", "2", x_het=0, x_hom_alt=130)
+    )
+    path = tmp_path / "x.samples.tsv"
+    path.write_text(SAMPLES_HEADER + rows)
+    got = {k: v.inferred_sex for k, v in parse_samples_tsv(path).items()}
+    # somalier's own call wins; otherwise chrX heterozygosity decides; too little data is unknown
+    assert got == {"m": "male", "f": "female", "few": "unknown", "mid": "unknown", "told": "female"}
 
 
 def test_split_command_keeps_windows_backslashes() -> None:

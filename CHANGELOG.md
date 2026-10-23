@@ -32,4 +32,6 @@ First release: the core checks, four report formats and the optional identity ch
 - A Dockerfile (non-root), a pre-commit configuration and a GitHub Actions workflow.
 - Examples: a "good" and a "messy" submission with generated reports in `examples/reports/`.
 - Real somalier fixtures for the GIAB trio HG002, HG003 and HG004, and the engineered failures
-  built from them.
+  built from them (`docs/identity-fixtures.md`). relate is run without a pedigree, because with
+  one somalier echoes the pedigree's sex instead of inferring it; when somalier makes no sex call
+  (VCF input has no read depth) the sex is taken from chrX heterozygosity.

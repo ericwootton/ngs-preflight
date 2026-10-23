@@ -113,10 +113,12 @@ def samples_row(
     het: int = 5000,
     hom_alt: int = 2500,
     unknown: int = 200,
+    x_het: int = 0,
+    x_hom_alt: int = 0,
 ) -> str:
     return (
         f"{sid}\t{sid}\t-9\t-9\t{sex}\t-9\t-9\t30\t5\t30\t5\t0.5\t0.1\t{hom_ref}\t{het}\t{hom_alt}\t"
-        f"{unknown}\t0.0\t15\t300\t0\t100\t0\t0\t0\t0\n"
+        f"{unknown}\t0.0\t15\t300\t0\t{x_het}\t{x_hom_alt}\t0\t0\t0\n"
     )
 
 

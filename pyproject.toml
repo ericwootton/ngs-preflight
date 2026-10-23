@@ -55,7 +55,7 @@ include = ["src", "tests", "docs", "examples", "scripts", "README.md", "LICENSE"
 testpaths = ["tests"]
 addopts = "-ra"
 markers = [
-  "somalier: needs the somalier binary (or PREFLIGHT_SOMALIER_CMD / PREFLIGHT_SOMALIER_IMAGE); skipped when unavailable",
+  "somalier: needs the somalier binary (or PREFLIGHT_SOMALIER_CMD); skipped when unavailable",
 ]
 
 [tool.coverage.run]
