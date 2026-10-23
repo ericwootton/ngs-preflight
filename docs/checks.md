@@ -425,7 +425,7 @@ Naming style is read from the primary chromosomes (1-22, X, Y, M with or without
 
 **Message shown to the customer**
 
-> {problem} Some tools stop on this mismatch (for example with a sequence dictionary error), and any reads on the missing chromosomes would be ignored.
+> {problem} Current GATK and DeepVariant accept this, but stricter tools may not, and reads on chromosomes that are absent from the reference are ignored.
 
 **How it works**
 

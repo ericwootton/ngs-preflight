@@ -14,7 +14,7 @@ from ngs_preflight.contigs import (
 )
 from ngs_preflight.models import Severity
 from ngs_preflight.registry import Hit, check
-from ngs_preflight.util import cap, plural, quote_list
+from ngs_preflight.util import cap, plural, quote_list, verb
 
 _STYLE_WORDS = {"chr": 'with a "chr" prefix (chr1)', "plain": "without a prefix (1)"}
 
@@ -87,13 +87,16 @@ def ref001(ctx: CrossContext) -> Iterator[Hit]:
                     {
                         "problem": (
                             f"The reads file and the reference look like different genome builds "
-                            f"({plural(len(differing), 'chromosome')} have different lengths; "
+                            f"({plural(len(differing), 'chromosome')} "
+                            f"{verb(len(differing), 'has a', 'have')} different "
+                            f"{verb(len(differing), 'length', 'lengths')}; "
                             f"chromosome {k} is {rlen[k]:,} bp in the reads but {ref_norm[k]:,} "
                             "bp in the reference)."
                         ),
                         "consequence": (
                             "Coordinates would not mean the same thing in the two files, so "
-                            "results would be wrong or the run would stop with a dictionary error."
+                            "results would be wrong, and some tools stop with a sequence "
+                            "dictionary error."
                         ),
                         "fix": (
                             "Find out which genome build each file uses and supply matching "
@@ -159,8 +162,8 @@ def ref001(ctx: CrossContext) -> Iterator[Hit]:
     severity=Severity.WARN,
     title="Reads and reference list the same chromosomes",
     message=(
-        "{problem} Some tools stop on this mismatch (for example with a sequence dictionary "
-        "error), and any reads on the missing chromosomes would be ignored."
+        "{problem} Current GATK and DeepVariant accept this, but stricter tools may not, and "
+        "reads on chromosomes that are absent from the reference are ignored."
     ),
     detail=(
         "Compares the chromosome names in a BAM header with the reference. Reports names in the "

@@ -87,3 +87,24 @@ def test_cross_checks_skipped_with_reason_when_no_bams(tmp_path: Path) -> None:
     reasons = {s.check_id: s.reason for s in report.skipped}
     assert {"REF001", "REF002", "REF003"} <= set(reasons)
     assert all("no BAM files" in r for r in reasons.values())
+
+
+def test_ref001_grammar_for_one_chromosome(tmp_path: Path) -> None:
+    refs = {f"chr{k}": v for k, v in GRCH38_LENGTHS.items()} | {"chrM": 16569}
+    refs["chr21"] += 5
+    report = _run(tmp_path, refs)
+    msg = next(x.message for x in report.all_findings() if x.check_id == "REF001")
+    assert "1 chromosome has a different length" in msg
+
+
+def test_ref001_grammar_for_several_chromosomes(tmp_path: Path) -> None:
+    report = _run(tmp_path, {f"chr{k}": v for k, v in GRCH37_LENGTHS.items()})
+    msg = next(x.message for x in report.all_findings() if x.check_id == "REF001")
+    assert "chromosomes have different lengths" in msg
+
+
+def test_ref002_does_not_overstate(tmp_path: Path) -> None:
+    report = _run(tmp_path, {"chr1": 248956422})
+    msg = next(x.message for x in report.all_findings() if x.check_id == "REF002")
+    assert "Current GATK and DeepVariant accept this" in msg
+    assert "stop on this mismatch" not in msg
