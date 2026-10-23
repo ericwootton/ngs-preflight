@@ -8,8 +8,8 @@ columns:
     required: true
     description: Path to read 1 (or the BAM/CRAM) for this row.
   - name: fastq_2
-    required: true
-    description: Path to read 2 for this row.
+    required: true  # waived for rows whose fastq_1 ends in .bam or .cram (see SS001)
+    description: Path to read 2 for this row. Required for FASTQ rows; leave blank, or omit the column, when fastq_1 is a BAM or CRAM.
   - name: sex
     required: false
     description: Declared sex, from the allowed vocabulary below.

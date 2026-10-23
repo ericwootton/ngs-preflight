@@ -31,6 +31,11 @@ def _read_paths(row: SampleRow) -> Iterator[str]:
             yield value
 
 
+def _is_alignment(fastq_1: str) -> bool:
+    """A BAM or CRAM row has no read 2 file."""
+    return fastq_1.lower().endswith((".bam", ".cram"))
+
+
 @check(
     id="SS001",
     severity=Severity.ERROR,
@@ -38,8 +43,10 @@ def _read_paths(row: SampleRow) -> Iterator[str]:
     message="{problem} The workflow cannot tell which samples and files to process without them.",
     detail=(
         "The schema lives in src/ngs_preflight/schema/samplesheet.yaml. Required columns: "
-        "sample_id, fastq_1, fastq_2. Optional: sex, family_id, paternal_id, maternal_id, "
-        "library_id, lane. Column names must match exactly (case-sensitive); a close match such "
+        "sample_id, fastq_1 and, for FASTQ rows, fastq_2 (a row whose fastq_1 is a BAM or CRAM "
+        "file needs no fastq_2, and the column may be absent). Optional: sex, family_id, "
+        "paternal_id, maternal_id, library_id, lane. Column names must match exactly "
+        "(case-sensitive); a close match such "
         "as 'Sample ID' is reported as a hint. Blank cells in required columns are also reported."
     ),
     fix="{fix}",
@@ -55,7 +62,9 @@ def ss001(ctx: SheetContext) -> Iterator[Hit]:
             }
         )
         return
-    missing = [c for c in ctx.schema.required if c not in sheet.header]
+    needs_fastq_2 = not sheet.rows or any(not _is_alignment(r.fastq_1) for r in sheet.rows)
+    required = [c for c in ctx.schema.required if c != "fastq_2" or needs_fastq_2]
+    missing = [c for c in required if c not in sheet.header]
     if missing:
         hints = []
         for col in missing:
@@ -71,15 +80,19 @@ def ss001(ctx: SheetContext) -> Iterator[Hit]:
                 ),
                 "fix": (
                     "Add the missing columns, or rename them to the exact spelling above. "
-                    "Required columns are: " + ", ".join(ctx.schema.required) + "."
+                    "Required columns are: " + ", ".join(required) + "."
                 ),
             },
             technical="Columns found: " + ", ".join(sheet.header),
         )
     blanks: dict[str, list[int]] = {}
-    for col in ctx.schema.required:
+    for col in required:
         if col in sheet.header:
-            lines = [r.line for r in sheet.rows if not getattr(r, col, "")]
+            lines = [
+                r.line
+                for r in sheet.rows
+                if not getattr(r, col, "") and not (col == "fastq_2" and _is_alignment(r.fastq_1))
+            ]
             if lines:
                 blanks[col] = lines
     if blanks:

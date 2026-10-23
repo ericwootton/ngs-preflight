@@ -257,7 +257,7 @@ Only runs when column 4 (name) is present. Empty names and the placeholder '.' a
 
 **How it works**
 
-The schema lives in src/ngs_preflight/schema/samplesheet.yaml. Required columns: sample_id, fastq_1, fastq_2. Optional: sex, family_id, paternal_id, maternal_id, library_id, lane. Column names must match exactly (case-sensitive); a close match such as 'Sample ID' is reported as a hint. Blank cells in required columns are also reported.
+The schema lives in src/ngs_preflight/schema/samplesheet.yaml. Required columns: sample_id, fastq_1 and, for FASTQ rows, fastq_2 (a row whose fastq_1 is a BAM or CRAM file needs no fastq_2, and the column may be absent). Optional: sex, family_id, paternal_id, maternal_id, library_id, lane. Column names must match exactly (case-sensitive); a close match such as 'Sample ID' is reported as a hint. Blank cells in required columns are also reported.
 
 **Suggested fix**
 

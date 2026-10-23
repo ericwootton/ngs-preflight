@@ -98,7 +98,7 @@ flowchart LR
 - BED007 (1-based coordinates) is a heuristic and says so; it can miss cases and, rarely, flag a file that is fine. How it decides is documented in `docs/checks.md`.
 - CRAM headers are not read (reported as a note, REF003). Only BAM headers are compared with the reference.
 - Genome build detection knows human GRCh37 and GRCh38 only; other species are checked by name and length against the reference you give.
-- Gzip integrity is proven in full only for files up to 32 MiB; larger non-BGZF files get a head and trailer check, and BGZF files an end-of-file marker check (that catches truncated uploads).
+- Gzip integrity is proven in full only for files up to 32 MiB; larger non-BGZF files get a check of their first 4 MiB only, and BGZF files (such as BAM) get an end-of-file marker check plus their first 4 MiB, which catches truncated uploads.
 - Identity checks need somalier 0.3.5 and its sites file, and are reliable only with whole-genome or exome data; with few informative sites ID005 says so.
 - Sample-sheet columns follow one fixed layout ([`schema/samplesheet.yaml`](src/ngs_preflight/schema/samplesheet.yaml)).
 

@@ -110,3 +110,30 @@ def test_skipped_checks_are_listed_with_reason_when_no_reference() -> None:
 def test_sheet_checks_skipped_without_reads_dir() -> None:
     report = check(samplesheet=str(DATA / "samplesheets" / "ok_full.csv"))
     assert {s.check_id for s in report.skipped} == {"SS004", "SS007"}
+
+
+def test_alignment_rows_need_no_fastq_2(tmp_path: Path) -> None:
+    from tests.helpers import make_bam
+
+    make_bam(tmp_path / "slice.bam", {"chr1": 1000})
+    sheet = tmp_path / "s.csv"
+    for text in (
+        "sample_id,fastq_1,sex\nHG002,slice.bam,male\n",
+        "sample_id,fastq_1,fastq_2,sex\nHG002,slice.bam,,male\n",
+    ):
+        sheet.write_text(text)
+        report = check(samplesheet=str(sheet), reads_dir=str(tmp_path))
+        assert not any(f.severity.value == "ERROR" for f in report.all_findings()), text
+        assert "SS001" not in ids(report)
+
+
+def test_fastq_rows_still_need_fastq_2(tmp_path: Path) -> None:
+    sheet = tmp_path / "s.csv"
+    sheet.write_text("sample_id,fastq_1,sex\nA,A_R1.fastq.gz,male\n")
+    assert "SS001" in ids(check(samplesheet=str(sheet)))
+    sheet.write_text("sample_id,fastq_1,fastq_2\nA,A_R1.fastq.gz,\nB,b.bam,\n")
+    report = check(samplesheet=str(sheet))
+    blank = [f for f in report.all_findings() if f.check_id == "SS001"]
+    assert len(blank) == 1 and "line 2" in blank[0].message
+    sheet.write_text("sample_id,fastq_1,sex\nA,A_R1.fastq.gz,male\nB,b.bam,male\n")
+    assert "SS001" in ids(check(samplesheet=str(sheet)))

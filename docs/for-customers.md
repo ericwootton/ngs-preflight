@@ -52,7 +52,7 @@ header row.
 |---|---|---|
 | `sample_id` | yes | A unique name for the sample. Letters, digits, `_` and `-` only, up to 64 characters. No spaces or slashes. |
 | `fastq_1` | yes | File name of read 1 (or of the BAM/CRAM file). |
-| `fastq_2` | yes | File name of read 2. Leave empty only for single-end data or BAM/CRAM. |
+| `fastq_2` | yes, for FASTQ | File name of read 2. For a BAM or CRAM row, leave it empty or leave the column out. |
 | `sex` | no | `male`, `female` or `unknown` (also accepted: M, F, 1, 2, 0). |
 | `family_id` | no | A name for the family, if samples are related. |
 | `paternal_id`, `maternal_id` | no | The `sample_id` of the father and the mother. Leave empty (or 0) if unknown. |
