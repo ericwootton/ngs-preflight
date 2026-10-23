@@ -46,6 +46,9 @@ python -m ruff check . && python -m ruff format --check .
 python -m mypy --strict src
 python -m ngs_preflight docs          # regenerate docs/checks.md and docs/report.schema.json
 python scripts/build_examples.py      # regenerate examples/ and examples/reports/
+# docs site: docs/examples/ is gitignored and filled at build time, as in docs.yml
+mkdir -p docs/examples && cp examples/reports/{good,messy}.html docs/examples/
+mkdocs build --strict
 ```
 
 CI runs the same commands on Python 3.11, 3.12 and 3.13 (and Windows), requires 90% line coverage
