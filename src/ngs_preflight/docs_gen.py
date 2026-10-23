@@ -48,24 +48,25 @@ def render_checks_md() -> str:
     )
     out.append("")
     out.append(
-        f"This page lists every check in ngs-preflight {__version__}. It is generated from the "
-        "same registry the tool runs, so it cannot drift from the code. Run "
-        "`preflight explain <ID>` to see one entry in the terminal."
+        f"This page lists all checks in ngs-preflight {__version__}. Since it is generated from "
+        "the same registry used by the tool at runtime, it cannot diverge from the code. To view "
+        "an individual check in your terminal, run `preflight explain <ID>`."
     )
     out.append("")
     out.append("## How to read this page")
     out.append("")
     out.append(
-        "- **ERROR** means the submission is likely to fail or give wrong results. Fix it first."
+        "- **ERROR** indicates that the submission is likely to fail or return incorrect "
+        "results. Correct the issue first."
     )
     out.append(
-        "- **WARN** means something looks wrong or risky. Review it; "
-        "with `--strict` it counts as an error."
+        "- **WARN** indicates a possible issue or risk. Check the details. If `--strict` is "
+        "specified, the warning is treated as an error."
     )
-    out.append("- **INFO** is a note or summary. It never affects the exit code.")
+    out.append("- **INFO** is a note or summary and never affects the exit code.")
     out.append(
-        "- In the message text, anything in `{braces}` is filled in with values from your files "
-        "when the check fires."
+        "- When a check is triggered, anything in `{braces}` in the message is filled in with "
+        "values from your files."
     )
     out.append(
         "- Exit codes of `preflight check`: `0` pass, `1` errors found (or warnings with "

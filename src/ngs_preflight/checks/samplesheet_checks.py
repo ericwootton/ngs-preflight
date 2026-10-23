@@ -40,14 +40,16 @@ def _is_alignment(fastq_1: str) -> bool:
     id="SS001",
     severity=Severity.ERROR,
     title="Required columns are present and filled in",
-    message="{problem} The workflow cannot tell which samples and files to process without them.",
+    message=(
+        "{problem} Without them, the workflow cannot determine which samples and files to process."
+    ),
     detail=(
-        "The schema lives in src/ngs_preflight/schema/samplesheet.yaml. Required columns: "
-        "sample_id, fastq_1 and, for FASTQ rows, fastq_2 (a row whose fastq_1 is a BAM or CRAM "
-        "file needs no fastq_2, and the column may be absent). Optional: sex, family_id, "
-        "paternal_id, maternal_id, library_id, lane. Column names must match exactly "
-        "(case-sensitive); a close match such "
-        "as 'Sample ID' is reported as a hint. Blank cells in required columns are also reported."
+        "The schema is located at src/ngs_preflight/schema/samplesheet.yaml. Required columns are "
+        "sample_id, fastq_1, and fastq_2 for FASTQ rows (fastq_2 is not required for rows where "
+        "fastq_1 is a BAM or CRAM file, and the column may be omitted entirely). Optional columns "
+        "are sex, family_id, paternal_id, maternal_id, library_id, and lane. Column names must "
+        "match exactly and are case-sensitive. Close matches such as 'Sample ID' will be reported "
+        "as hints. Blank cells in required columns will also be reported."
     ),
     fix="{fix}",
     scope="samplesheet",
@@ -118,18 +120,18 @@ def ss001(ctx: SheetContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Sample IDs are unique",
     message=(
-        '{count} on more than one row without a different lane number (for example "{sample}" '
-        "on lines {lines}). Two different samples with the same ID cannot be told apart, and their "
+        '{count} on more than one row without a different lane number (for example, "{sample}" on '
+        "lines {lines}). 2 different samples with the same ID cannot be distinguished, and their "
         "results would be merged or overwritten."
     ),
     detail=(
-        "Rows may repeat a sample_id only when a 'lane' column exists and each repeated row has a "
-        "distinct, non-blank lane (one sample sequenced on several lanes). Anything else is a "
-        "duplicate."
+        "The same sample_id is allowed in multiple rows only if a 'lane' column is present. In "
+        "these rows, lane values must be non-empty and distinct (i.e. the same sample is sequenced "
+        "across multiple lanes). All other cases are considered duplicates."
     ),
     fix=(
-        "Give every sample a unique ID. If one sample was sequenced on several lanes, add a lane "
-        "column and give each row its own lane number."
+        "Assign a unique ID to each sample. If the same sample was sequenced across multiple "
+        "lanes, add a lane column and assign the corresponding lane number to each row."
     ),
     scope="samplesheet",
 )
@@ -164,15 +166,15 @@ def ss002(ctx: SheetContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Sample IDs use safe characters",
     message=(
-        '{count} not allowed (for example "{example}"). Sample IDs may only use letters, digits, '
-        "underscore and hyphen, up to {max_length} characters. Spaces, slashes and other symbols "
-        "break file names and many workflow tools."
+        '{count} not allowed (for example, "{example}"). Sample IDs may contain only letters, '
+        "digits, underscores, and hyphens, up to {max_length} characters. Spaces, slashes, and "
+        "other symbols cause problems with file names and many workflow tools."
     ),
     detail=(
-        "Pattern from the schema: ^[A-Za-z0-9_-]+$, maximum length 64. Blank IDs are reported by "
-        "SS001, not here."
+        "Schema pattern is ^[A-Za-z0-9_-]+$ and the maximum length is 64. Empty IDs are reported "
+        "by SS001 and are not reported here."
     ),
-    fix="Rename the samples using only A-Z, a-z, 0-9, underscore (_) and hyphen (-).",
+    fix=("Change sample names using only A-Z, a-z, 0-9, underscores (_), and hyphens (-)."),
     scope="samplesheet",
 )
 def ss003(ctx: SheetContext) -> Iterator[Hit]:
@@ -199,17 +201,17 @@ def ss003(ctx: SheetContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Read files exist and are readable",
     message=(
-        '{count} listed in the sample sheet could not be found or opened (for example "{path}" '
-        'for sample "{sample}"{why}). The run would fail as soon as it tries to read them.'
+        '{count} listed in the sample sheet could not be found or opened (for example, "{path}" '
+        'for sample "{sample}"{why}). The run would fail as soon as it tried to read them.'
     ),
     detail=(
-        "Relative paths are resolved against --reads-dir; absolute paths are used as written. "
-        "Paths that are URLs (s3://, gs://, https://, ...) cannot be checked and are skipped. A "
-        "file of 0 bytes counts as unreadable."
+        "Relative paths are resolved against --reads-dir, while absolute paths are used as "
+        "provided. Paths expressed as URLs (s3://, gs://, https://, ...) are skipped because they "
+        "cannot be validated. Files with a size of 0 bytes are considered unreadable."
     ),
     fix=(
-        "Check the file names for typos and that the files were copied to the folder given with "
-        "--reads-dir. Upload any files that are missing."
+        "Check the file names for spelling errors, and confirm that the files have been copied to "
+        "the folder specified by --reads-dir. Upload any missing files."
     ),
     scope="samplesheet",
     requires=("reads_dir",),
@@ -255,17 +257,17 @@ def ss004(ctx: SheetContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="No file is listed twice",
     message=(
-        '{count} listed more than once (for example "{path}", used by {users}). Reads from one '
-        "file would be counted under several samples, or the same reads used as both read 1 and "
-        "read 2."
+        '{count} listed more than once (for example, "{path}", used by {users}). Reads from one '
+        "file would be counted under several samples, or the same reads would be used as both "
+        "read 1 and read 2."
     ),
     detail=(
-        "Paths are compared as written (after normalising slashes). A file appearing in two "
-        "rows, or as both fastq_1 and fastq_2 of one row, is reported."
+        "Paths are compared in their recorded form after slash normalization. If the same file "
+        "appears in 2 rows or in both fastq_1 and fastq_2 within 1 row, this is reported."
     ),
     fix=(
-        "Check that each sample points at its own files. If you copied a row to make a new one, "
-        "update its file names."
+        "Check that each sample references its own files. If you created a new row by copying "
+        "another row, update the file names in that row."
     ),
     scope="samplesheet",
 )
@@ -326,19 +328,20 @@ def _pair_problem(ctx: SheetContext, row: SampleRow) -> str | None:
     severity=Severity.WARN,
     title="Read 1 and read 2 files pair up",
     message=(
-        '{count} not look like matching read 1 / read 2 pairs (for example sample "{sample}": '
-        "{why}). Mispaired files make alignment fail or produce nonsense, often only after "
-        "hours of compute."
+        '{count} not look like matching read 1 / read 2 pairs (for example, sample "{sample}": '
+        "{why}). Mispaired files make alignment fail or produce meaningless results, often only "
+        "after hours of computation."
     ),
     detail=(
-        "File names are compared after replacing R1/R2 (or _1/_2) with a placeholder. When both "
-        "files can be read (--reads-dir), the first 100 read names are compared (the first token "
-        "of each header, ignoring a trailing /1 or /2). Files without an R1/R2 marker pass the "
-        "name test."
+        "File names are compared after R1/R2 (or _1/_2) is replaced with a placeholder. If both "
+        "files are readable (--reads-dir), the first 100 read names are compared. This comparison "
+        "uses the first token of each header and ignores a trailing /1 or /2. Files without an "
+        "R1/R2 marker pass the name test."
     ),
     fix=(
-        "Check that fastq_1 holds the read 1 file and fastq_2 the read 2 file from the same "
-        "sequencing run, and that neither was renamed or swapped."
+        "Confirm that fastq_1 contains the read 1 file and fastq_2 contains the read 2 file. Check "
+        "that these files came from the same sequencing run and that neither has been renamed or "
+        "swapped."
     ),
     scope="samplesheet",
 )
@@ -366,19 +369,20 @@ def ss006(ctx: SheetContext) -> Iterator[Hit]:
     severity=Severity.WARN,
     title="Compressed files are intact",
     message=(
-        '{count} damaged or incomplete (for example "{path}": {why}). A truncated '
-        "download or interrupted copy is the usual cause, and it makes runs fail partway through."
+        '{count} damaged or incomplete (for example, "{path}": {why}). An interrupted download or '
+        "copy is the usual cause, and it makes runs fail partway through."
     ),
     detail=(
-        "Fast check, not a full validation. Every .gz/.bam: gzip signature, clean header, first "
-        "4 MiB decompresses. BGZF files (.bam, bgzip FASTQ): the 28-byte end-of-file marker must "
-        "be present. Other gzip files up to 32 MiB: the whole stream is decompressed and its CRC "
-        "verified. Larger non-BGZF gzip files cannot be proven complete cheaply, so only the head "
-        "and trailer are checked."
+        "This is a quick check and does not provide full validation. For every .gz/.bam file, it "
+        "checks the gzip signature and the header, and that the first 4 MiB can be decompressed. "
+        "BGZF files (.bam, bgzip FASTQ) must contain the 28-byte end-of-file marker. Other gzip "
+        "files of 32 MiB or less are decompressed in full and their CRC is verified. Larger "
+        "non-BGZF gzip files cannot be shown to be complete at low cost, so only their beginning "
+        "and end are checked."
     ),
     fix=(
-        "Copy or download the file again, and compare its checksum (for example md5sum) with the "
-        "one given by the sender."
+        "Copy or download the file again, and compare its checksum (for example, md5sum) with the "
+        "checksum provided by the sender."
     ),
     scope="samplesheet",
     requires=("reads_dir",),
@@ -416,15 +420,15 @@ def ss007(ctx: SheetContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Sex values are from the allowed list",
     message=(
-        '{count} not in the accepted list (for example "{value}" for sample "{sample}"). '
+        '{count} not in the list of allowed values (for example, "{value}" for sample "{sample}"). '
         "Downstream steps and the sex check need a recognised value."
     ),
     detail=(
-        "Accepted values (case-insensitive): male/m/1, female/f/2, unknown/u/0/NA/n/a/'.'. A blank "
-        "cell is allowed (sex unknown). The vocabulary is defined in "
+        "Accepted values are male/m/1, female/f/2, and unknown/u/0/NA/n/a/'.' (case-insensitive). "
+        "A blank value is also allowed and indicates unknown sex. This vocabulary is defined in "
         "src/ngs_preflight/schema/samplesheet.yaml."
     ),
-    fix="Use one of: male, female, unknown (or M, F, U; or 1, 2, 0), or leave the cell blank.",
+    fix=("Use male, female, or unknown (or M, F, U, or 1, 2, 0), or leave the cell blank."),
     scope="samplesheet",
 )
 def ss008(ctx: SheetContext) -> Iterator[Hit]:
@@ -445,17 +449,18 @@ def ss008(ctx: SheetContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Family relationships are consistent",
     message=(
-        "{problem} The family structure is used for relatedness checks and by family-aware "
-        "analysis, so an inconsistent one can give wrong results."
+        "{problem} The pedigree is used for relatedness checks and by analyses which take the "
+        "pedigree into account, so an inconsistent pedigree can give incorrect results."
     ),
     detail=(
-        "Every non-empty paternal_id / maternal_id must be the sample_id of another row, and no "
-        "sample may be its own father or mother. Blank, 0, '.', NA, n/a and none mean 'no "
-        "parent recorded'."
+        "Every non-empty paternal_id / maternal_id must match the sample_id in another row, and no "
+        "sample may be its own father or mother. Blank values, 0, '.', NA, n/a, and none indicate "
+        "no parent record."
     ),
     fix=(
-        "Add a row for each parent (or clear the parent cell if the parent is not part of this "
-        "submission), and make sure nobody is listed as their own parent."
+        "Add a row for each parent (if a parent is not included in this submission, leave the "
+        "corresponding parent cell blank). Also confirm that no individual is listed as their own "
+        "parent."
     ),
     scope="samplesheet",
 )

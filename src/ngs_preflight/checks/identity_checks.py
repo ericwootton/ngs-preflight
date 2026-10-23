@@ -46,18 +46,20 @@ def _relations(declared: dict[str, Declared]) -> tuple[set[frozenset[str]], set[
     severity=Severity.ERROR,
     title="No two samples are the same person",
     message=(
-        'Samples "{a}" and "{b}" have almost identical genotypes (relatedness {relatedness:.2f}, '
-        "where 1.0 means the same person). Two different sample IDs should not hold the same "
-        "individual: this is either a duplicate submitted under two names, or a sample swap."
+        'Samples "{a}" and "{b}" have nearly identical genotypes (relatedness {relatedness:.2f}, '
+        "where 1.0 indicates the same individual). 2 different sample IDs must not refer to the "
+        "same individual. Either the same sample was submitted under 2 names, or a sample mix-up "
+        "occurred."
     ),
     detail=(
-        "somalier relate compares genotypes at about 17,000 common sites. Any pair of different "
-        f"sample IDs with relatedness above {DUPLICATE_RELATEDNESS} is reported. Identical twins "
-        "and the same person sequenced twice cannot be told apart by this test."
+        "somalier relate compares genotypes at about 17,000 common sites. All pairs with "
+        f"different sample IDs and relatedness above {DUPLICATE_RELATEDNESS} are reported. This "
+        "check cannot distinguish identical twins from sequencing the same individual twice."
     ),
     fix=(
-        "Check with the submitter which sample each file really belongs to. If one is a repeat of "
-        "the other, give them the same sample ID and a different library or lane, or drop one."
+        "Confirm with the submitter which sample each file actually belongs to. If one is a "
+        "duplicate of the other, assign them the same sample ID and different library or "
+        "sequencing lane values, or exclude one."
     ),
     scope="identity",
 )
@@ -75,19 +77,22 @@ def id001(ctx: IdentityContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Declared parent and child are related as expected",
     message=(
-        'The sample sheet says "{parent}" is the {role} of "{child}", but their genomes are only '
-        "{relatedness:.2f} related (a parent and child should be about 0.50). Either the family "
-        "tree in the sheet is wrong, or a sample has been swapped or mislabelled."
+        'The sample sheet lists "{parent}" as the {role} of "{child}", but their genetic '
+        "relatedness is only {relatedness:.2f} (about 0.50 would be expected for a parent and "
+        "child). Either the pedigree in the sample sheet is incorrect, or the samples have been "
+        "mixed up or mislabelled."
     ),
     detail=(
-        "For every declared parent-child pair with both samples present, relatedness from somalier "
-        f"relate must fall between {PARENT_CHILD_RANGE[0]} and {PARENT_CHILD_RANGE[1]} (expected "
-        "0.5). Father and son swapped in the sheet is still parent-child, but the other parent "
-        "link then fails, which is how swaps are usually caught."
+        "For all declared parent-child pairs where both samples are present, relatedness "
+        f"calculated by somalier relate must be within {PARENT_CHILD_RANGE[0]}-"
+        f"{PARENT_CHILD_RANGE[1]} (expected value of 0.5). Even if the father and son are swapped "
+        "in the sample sheet, they remain a parent-child pair. However, this swap can usually be "
+        "detected because the relationship with the other parent would no longer meet the "
+        "criteria."
     ),
     fix=(
-        "Check the paternal_id / maternal_id columns against the family you were told about. If "
-        "the sheet is right, ask the lab to confirm the sample labels."
+        "Check the paternal_id / maternal_id columns against the supplied pedigree information. If "
+        "the sample sheet is correct, ask the laboratory to check the sample labels."
     ),
     scope="identity",
 )
@@ -121,19 +126,21 @@ def id002(ctx: IdentityContext) -> Iterator[Hit]:
     severity=Severity.WARN,
     title="Unrelated samples are unrelated",
     message=(
-        'Samples "{a}" and "{b}" are not declared as relatives in the sample sheet, but their '
-        "genomes are {relatedness:.2f} related (unrelated people are close to 0). They may be "
-        "relatives that the sheet does not mention, or the sheet may be incomplete."
+        'Samples "{a}" and "{b}" are not listed as related in the sample sheet, but their genomic '
+        "relatedness is {relatedness:.2f} (close to 0 for unrelated individuals). They may be "
+        "relatives which the sample sheet does not mention, or the sample sheet may be incomplete."
     ),
     detail=(
-        f"Pairs with relatedness between {UNRELATED_RELATEDNESS} and {DUPLICATE_RELATEDNESS} are "
-        "reported when the sheet gives no relationship between them. Samples in the same "
-        "family_id, parent-child pairs and siblings (sharing a declared parent) are never "
-        "reported. Samples that are not in the sheet are not reported."
+        f"Sample pairs with relatedness between {UNRELATED_RELATEDNESS} and "
+        f"{DUPLICATE_RELATEDNESS} are reported if their relationship is not recorded in the sample "
+        "sheet. Pairs within the same family_id, parent-child pairs, and sibling pairs (samples "
+        "which share a declared parent) are never reported. Samples absent from the sample sheet "
+        "are not reported."
     ),
     fix=(
-        "If these people are related, add the family_id and parent columns. If they should not "
-        "be related, ask the lab whether samples were mixed up."
+        "If these individuals are related, add the family_id and parent columns. If these "
+        "individuals are expected to be unrelated, check with the laboratory whether a sample "
+        "mix-up has occurred."
     ),
     scope="identity",
 )
@@ -157,22 +164,24 @@ def id003(ctx: IdentityContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Declared sex matches the data",
     message=(
-        'The sample sheet says "{sample}" is {declared}, but the data look {inferred} '
-        "(X-chromosome heterozygosity and X/Y read depth). Either the sex in the sheet is wrong "
-        "or the sample has been mixed up."
+        'The sample sheet lists "{sample}" as {declared}, but the data suggest {inferred} (X '
+        "chromosome heterozygosity and X/Y read depth). Either the sex recorded in the sample "
+        "sheet is incorrect, or the sample has been mixed up."
     ),
     detail=(
-        "somalier infers sex per sample from heterozygous calls on chrX and relative depth on "
-        "chrX and chrY. Reported when the sheet says male or female and somalier infers the "
-        "opposite. Samples declared unknown, or where somalier cannot decide, are not reported. "
-        "Needs enough chrX/chrY sites; with very low coverage the call may be absent. When "
-        "somalier makes no call (it uses read depth, which VCF input does not have), the sex is "
-        "taken from chrX instead: under 5% heterozygous among non-reference calls is male, over "
-        "25% is female, anything else (or fewer than 20 such sites) is unknown."
+        "somalier infers sex per sample using heterozygous calls on chrX and relative depth on "
+        "chrX and chrY. A discrepancy is reported when the sample sheet says male or female and "
+        "somalier infers the opposite sex. Samples declared unknown or whose sex somalier cannot "
+        "determine are not reported. This determination requires enough sites on chrX/chrY, and "
+        "very low coverage may prevent a result. somalier uses read depth, which VCF input does "
+        "not have. When somalier makes no call, sex is inferred from chrX instead. If heterozygous "
+        "variants account for less than 5% of non-reference variant calls, the sample is "
+        "classified as male. If this proportion is greater than 25%, the sample is classified as "
+        "female. Other cases, including samples with fewer than 20 such sites, are unknown."
     ),
     fix=(
-        "Check the sex entered for this sample. If the sheet is right, ask the lab to confirm "
-        "the sample was not swapped."
+        "Check the sex recorded for this sample. If the sample sheet is correct, ask the "
+        "laboratory to confirm that no sample mix-up occurred."
     ),
     scope="identity",
 )
@@ -195,19 +204,22 @@ def id004(ctx: IdentityContext) -> Iterator[Hit]:
     severity=Severity.WARN,
     title="Enough informative sites for an identity call",
     message=(
-        'Only {sites:,} of the identity sites could be read in "{sample}" ({low} is the minimum '
-        "we consider reliable). With so few, the relatedness and sex results for this sample "
-        "may be wrong, so treat the identity checks on it as unconfirmed."
+        'Only {sites:,} sample identity sites were readable for "{sample}" (we consider {low} '
+        "sites the minimum for reliable results). With so few sites, the relatedness and sex "
+        "results for this sample may be incorrect, so treat its sample identity checks as "
+        "unconfirmed."
     ),
     detail=(
-        f"Informative sites are those somalier genotyped as homozygous reference, heterozygous or "
-        f"homozygous alternate. Fewer than {MIN_INFORMATIVE_SITES:,} (about 28% of the 17,766 "
-        "sites in the standard hg38 list) triggers this warning. Typical causes: low coverage, "
-        "a targeted panel that does not cover the sites, or a VCF without hom-ref records."
+        "Informative sites are sites which somalier classifies as homozygous for the reference "
+        "allele, heterozygous, or homozygous for the alternate allele. This warning is displayed "
+        f"when their number is below {MIN_INFORMATIVE_SITES:,} (about 28% of the 17,766 sites in "
+        "the standard hg38 list). Typical causes include low coverage, targeted panels which do "
+        "not cover these sites, or a lack of hom-ref records in the VCF."
     ),
     fix=(
-        "Use deeper data or a whole-genome/exome file for the identity check. For targeted "
-        "panels, consider whether the identity check is meaningful at all."
+        "Use data with higher sequencing depth or whole-genome or whole-exome files to verify "
+        "sample identity. For targeted panels, consider whether verifying sample identity is "
+        "meaningful."
     ),
     scope="identity",
 )

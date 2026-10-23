@@ -106,5 +106,5 @@ def test_ref001_grammar_for_several_chromosomes(tmp_path: Path) -> None:
 def test_ref002_does_not_overstate(tmp_path: Path) -> None:
     report = _run(tmp_path, {"chr1": 248956422})
     msg = next(x.message for x in report.all_findings() if x.check_id == "REF002")
-    assert "Current GATK and DeepVariant accept this" in msg
+    assert "GATK and DeepVariant currently accept this" in msg
     assert "stop on this mismatch" not in msg

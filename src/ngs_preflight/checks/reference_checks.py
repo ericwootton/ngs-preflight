@@ -33,14 +33,15 @@ def _inspectable(reads: list[ReadsInfo]) -> list[ReadsInfo]:
     title="Reference, BED and reads agree on naming and genome build",
     message=("{problem} {consequence}"),
     detail=(
-        "Naming style is read from the primary chromosomes (1-22, X, Y, M with or without "
-        "'chr'). A BAM header is compared with the reference; when there is no reference, the BED "
-        "is compared with the BAM header instead (the BED-versus-reference case is reported in "
-        "detail by BED003). Genome build is compared by contig length: the same chromosome with "
-        "a different length means a different build (for example GRCh37 chr1 is 249,250,621 bp, "
-        "GRCh38 chr1 is 248,956,422 bp). With --expected-build, the reference itself is also "
-        "recognised by its lengths and compared with the expected build. Only BAM headers are "
-        "read; see REF003."
+        "Naming format is determined from the primary chromosomes (1-22, X, Y, M, with or without "
+        "'chr'). A BAM header is compared to the reference sequence. If no reference sequence is "
+        "available, the BED is compared to the BAM header instead (the BED comparison to the "
+        "reference sequence is reported in detail in BED003).\n\nGenome build is determined by "
+        "comparing contig lengths. Different lengths indicate different genome builds even for the "
+        "same chromosome (for example, chr1 has a length of 249,250,621 bp in GRCh37 and chr1 has "
+        "a length of 248,956,422 bp in GRCh38). When --expected-build is specified, the "
+        "reference's own genome build is also identified from its sequence lengths and compared to "
+        "the expected build. Only the BAM header is read. See REF003."
     ),
     fix="{fix}",
     scope="cross",
@@ -162,19 +163,21 @@ def ref001(ctx: CrossContext) -> Iterator[Hit]:
     severity=Severity.WARN,
     title="Reads and reference list the same chromosomes",
     message=(
-        "{problem} Current GATK and DeepVariant accept this, but stricter tools may not, and "
-        "reads on chromosomes that are absent from the reference are ignored."
+        "{problem} GATK and DeepVariant currently accept this situation. However, stricter tools "
+        "may not accept it, and reads on chromosomes absent from the reference sequence will be "
+        "ignored."
     ),
     detail=(
-        "Compares the chromosome names in a BAM header with the reference. Reports names in the "
-        "BAM that the reference lacks, and primary chromosomes (1-22, X, Y, M) the reference has "
-        "but the BAM header lacks. Not reported when the naming style differs (REF001 explains "
-        "that case)."
+        "Compares the chromosome names in the BAM header to those in the reference sequence. "
+        "Reports names present in the BAM but absent from the reference sequence. Also reports "
+        "primary chromosomes (1-22, X, Y, M) present in the reference sequence but absent from the "
+        "BAM header. These differences are not reported when the naming style differs (this is "
+        "described in REF001)."
     ),
     fix=(
-        "Align the reads to the same reference you are submitting, or supply the reference the "
-        "reads were aligned to. For a deliberately partial BAM, make sure its header lists only "
-        "the chromosomes it contains."
+        "Align reads to the same reference sequence you submitted, or provide the reference "
+        "sequence used to align them. For an intentionally partial BAM, confirm that its header "
+        "lists only the chromosomes included in that BAM."
     ),
     scope="cross",
     requires=("reference",),
@@ -216,13 +219,18 @@ def ref002(ctx: CrossContext) -> Iterator[Hit]:
     id="REF003",
     severity=Severity.INFO,
     title="Read-file header could not be inspected",
-    message="{reason} The reference compatibility checks (REF001, REF002) did not cover this file.",
-    detail=(
-        "BAM headers are read directly. CRAM headers are not inspected by this version, and a BAM "
-        "whose header cannot be parsed is reported here (integrity problems are reported by "
-        "SS007)."
+    message=(
+        "{reason} This file was not included in the reference sequence compatibility checks "
+        "(REF001, REF002)."
     ),
-    fix="No action needed. If compatibility matters, confirm this file's reference by other means.",
+    detail=(
+        "BAM headers are read directly. This version does not check CRAM headers. BAM files whose "
+        "headers cannot be parsed are reported here (integrity problems are reported by SS007)."
+    ),
+    fix=(
+        "No action is required. If compatibility matters, confirm this file's reference using "
+        "another method."
+    ),
     scope="cross",
 )
 def ref003(ctx: CrossContext) -> Iterator[Hit]:

@@ -1,15 +1,15 @@
 # How to prepare your BED file and sample sheet
 
-This page is for the people who send us data. Following it avoids the most common reasons a
-submission is returned. You can check your files yourself, in about a minute, with
-`preflight check` (see the end of this page).
+This page is intended for people who send us data. Following this page avoids the most
+common reasons submissions are returned. You can use `preflight check` to check your files
+in about 1 minute (see the end of this page).
 
 ## 1. The target BED file (your capture regions)
 
-A BED file lists the regions of the genome you want analysed, one region per line.
+A BED file lists the genomic regions to be analyzed, and 1 line corresponds to 1 region.
 
-**Format.** Plain text with three columns separated by TAB characters: chromosome, start, end.
-An optional fourth column is a name.
+**Format.** Plain text containing 3 TAB-separated columns for chromosome, start position, and
+end position. An optional name can be specified in column 4.
 
 ```text
 chr1	1000	1300	exon_1
@@ -18,35 +18,37 @@ chr1	5000	5400	exon_2
 
 **Do**
 
-- Use the same chromosome names as your reference. If the reference calls the first chromosome
-  `chr1`, write `chr1`, not `1`. The mitochondrial chromosome is `chrM` in one naming style and `MT`
-  in the other.
-- Use the same genome build as your reads and reference (for example GRCh38). Coordinates from
-  GRCh37 point to different places in GRCh38.
-- Use 0-based, half-open coordinates, which is the BED standard: the first base of a chromosome is
-  position 0, and the end is not included. A region covering the first 100 bases is `0  100`.
-  Tools that write 1-based coordinates (many spreadsheets, UCSC tables, VCF positions) need
-  converting: subtract 1 from the start.
-- Sort the file by chromosome and then by start (`sort -k1,1 -k2,2n`).
+- Use chromosome names which match those in the reference sequence. If chromosome 1 is represented
+  as `chr1` in the reference sequence, do not write `1`. Use `chr1` instead. The mitochondrial
+  chromosome is represented as `chrM` in one naming convention and `MT` in another.
+- Use the same genome build as the reads and reference sequence (for example, GRCh38).
+  Coordinates from GRCh37 refer to different positions in GRCh38.
+- Use the 0-based, half-open coordinates specified by the BED standard. The first base of a
+  chromosome is at position 0, and the interval excludes the end position. A region covering the
+  first 100 bases is `0  100`. Coordinates from tools which output 1-based positions (many
+  spreadsheets, UCSC tables, and VCF position fields) require conversion. Subtract 1 from the
+  start position.
+- Sort the file using chromosome as the primary sort key and start position as the secondary sort key (`sort -k1,1 -k2,2n`).
 - Merge overlapping regions, or tell us why they overlap.
-- Save as plain UTF-8 text with Unix line endings (LF).
+- Use Unix line endings (LF) and save as UTF-8 plain text.
 
 **Avoid**
 
-- Header lines other than `track`, `browser` or `#` comments.
-- Spaces instead of TABs, trailing spaces, a byte-order mark (an invisible character that Excel
-  adds at the start of a file), and Windows (CRLF) line endings.
-- Regions that run past the end of the chromosome, or where the end is smaller than the start.
-- Excel or Word as the editor. If you must use a spreadsheet, export as tab-separated text.
+- Header lines other than `track`, `browser`, or `#` comments.
+- Spaces used in place of TAB, trailing spaces, byte order marks (invisible characters added by
+  Excel at the start of a file), and Windows (CRLF) line endings.
+- Regions which extend beyond the end of a chromosome or have an end position less than the start position.
+- Using Excel or Word for editing. If you must use a spreadsheet, export it as tab-delimited text.
 
 **Fix common problems automatically.** `preflight fix-bed targets.bed --add-chr --sort` writes a
-corrected copy (`targets.fixed.bed`) and lists what it changed. It never changes your original
-file. Use `--strip-chr` to remove the prefix instead, and `--merge` to merge overlaps.
+corrected copy (`targets.fixed.bed`) and lists the changes. It never modifies the original file.
+To remove the prefix instead of adding it, use `--strip-chr`. To merge overlapping regions, use
+`--merge`.
 
 ## 2. The sample sheet
 
-One row per pair of read files, as a CSV (comma-separated) or TSV (tab-separated) file with a
-header row.
+A CSV (comma-separated) or TSV (tab-separated) file with a header row and 1 row per pair of
+sequencing read files.
 
 | Column | Required | What to put |
 |---|---|---|
@@ -60,19 +62,20 @@ header row.
 
 **Do**
 
-- Make sure every file named in the sheet is uploaded and that the names match exactly, including
-  upper and lower case.
-- Give every sample its own `sample_id`. A sample sequenced on several lanes can have several rows
-  with the same `sample_id` only if each row has a different `lane`.
-- Make sure read 1 and read 2 belong together: the names should differ only by `R1` and `R2`.
-- If you give a parent, that parent must also be a row in the sheet.
+- Confirm that all files listed in the sample sheet have been uploaded and that their filenames match
+  exactly, including case.
+- Assign a unique `sample_id` to each sample. For samples sequenced across multiple lanes, you
+  may use multiple rows with the same `sample_id`. However, this is only allowed if each row has a
+  different `lane`.
+- Confirm that read 1 and read 2 are paired. Their names should differ only in the `R1` and `R2` portions.
+- If a parent is specified, the sample sheet must also contain a row for that parent.
 
 **Avoid**
 
-- Misspelled column names (`sample id`, `Fastq1`). The checker tells you the closest correct name.
-- Blank cells in required columns, and the same file listed twice.
-- Files that were cut short during upload. Compare the file size with the original, or run
-  `gzip -t file.fastq.gz`.
+- Misspelled column names (`sample id`, `Fastq1`). The checker suggests the closest correct column name.
+- Blank cells in required columns and duplicate entries for the same file.
+- Files that were truncated during upload. Compare the file size against the original
+  file, or run `gzip -t file.fastq.gz`.
 
 ## 3. Check your files before sending them
 
@@ -82,10 +85,10 @@ preflight check --samplesheet samples.csv --bed targets.bed \
   --reference GRCh38.fa.fai --reads-dir ./fastq --format html --out report.html
 ```
 
-Open `report.html` in a browser. It starts with a summary ("Ready to run" or "Fix 2 errors before
-submitting") and explains each problem in plain language, with how to fix it. Send us the report
-together with your files.
+Open `report.html` in your browser. The report begins with a summary ("Ready to run" or "Fix 2
+errors before submitting"). It explains each issue and how to correct it in plain language. Send
+us the report along with your files.
 
-- Errors must be fixed. Warnings should be looked at. Notes need no action.
+- Errors must be corrected. Warnings should be checked. Notes require no action.
 - `preflight explain BED003` explains any check in detail.
-- If you do not have the reference file, ask us for the `.fai` file for the genome build you used.
+- If you do not have a reference file, ask us for the `.fai` file corresponding to the genome build you are using.

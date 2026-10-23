@@ -58,7 +58,7 @@
   ],
   "scenarios": {
     "trio": {
-      "engineered": "nothing; the true family",
+      "engineered": "nothing, the true family",
       "findings": {}
     },
     "duplicate": {

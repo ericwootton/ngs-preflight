@@ -14,13 +14,13 @@
 
 ### ERROR BED003: Chromosome names exist in the reference
 
-**What this means.** 5 chromosome names in the BED file cannot be found in the reference: "7", "1", "17", "X", "2". The reference uses the "chr" prefix (for example "chr7"), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so the data you expect to be analysed would be missing.
+**What this means.** 5 chromosome names in the BED file cannot be found in the reference sequence: "7", "1", "17", "X", "2". The reference uses the "chr" prefix (for example "chr7"), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so data you expect to be analysed would be missing.
 
 **How to fix.** Run: preflight fix-bed --add-chr targets.bed --out targets.fixed.bed  (writes a corrected copy and leaves your original untouched).
 
 <details><summary>Technical detail</summary>
 
-Every contig name in column 1 is compared, exactly and case-sensitively, with the sequence names in the reference .fai/.dict. If adding or removing a 'chr' prefix (including MT <-> chrM) would make every missing name match, the message says so and points to 'preflight fix-bed'.
+All contig names in column 1 are checked against sequence names in the reference .fai/.dict using case-sensitive exact matching. If adding or removing the 'chr' prefix (including MT <-> chrM) resolves all unmatched names, the message states this and suggests running 'preflight fix-bed'.
 
 Evidence: 10 intervals affected. Counts per name: 7=1, 1=5, 17=2, X=1, 2=1
 
@@ -28,13 +28,13 @@ Evidence: 10 intervals affected. Counts per name: 7=1, 1=5, 17=2, X=1, 2=1
 
 ### WARN BED005: Intervals are sorted
 
-**What this means.** The BED file is not sorted: some intervals start before the interval above them. Several common tools (bedtools, tabix, many variant callers) need sorted regions and will stop, or quietly give wrong answers, if they are not.
+**What this means.** The BED file is not sorted: some intervals start before the interval above them. Some commonly used tools (bedtools, tabix, and many variant callers) require sorted regions. If regions are not sorted, these tools will stop running or quietly return incorrect results.
 
-**How to fix.** Run: preflight fix-bed --sort <file> --out <sorted file>. Add --reference to sort in reference order.
+**How to fix.** Run preflight fix-bed --sort <file> --out <sorted file>. To sort in reference sequence order, add --reference.
 
 <details><summary>Technical detail</summary>
 
-Sorted means every chromosome is one contiguous block, starts do not decrease inside a block, and the blocks follow either the reference order (when a reference is given) or plain alphabetical order (as produced by 'sort -k1,1 -k2,2n').
+Sorted means that each chromosome forms a single continuous block and start positions within each block do not decrease. These blocks follow reference sequence order (if a reference sequence is specified) or simple alphabetical order (the order produced by 'sort -k1,1 -k2,2n').
 
 Evidence: 1 interval out of place.
 
@@ -42,13 +42,13 @@ Evidence: 1 interval out of place.
 
 ### WARN BED006: No overlapping or touching intervals
 
-**What this means.** 1 interval overlaps an earlier interval and 1 interval touches the previous one end to end. Counted as written, the targets add up to 2,579 bp, but they cover only 2,539 bp once overlaps are merged (10 regions become 8). Overlaps can double-count coverage and make some tools report the same region twice.
+**What this means.** 1 interval overlaps an earlier interval and 1 interval touches the previous one end to end. Summing the recorded intervals gives a total target size of 2,579 bp, while coverage after merging overlaps is only 2,539 bp (10 regions become 8). When overlaps are present, coverage can be counted more than once, and some tools may report the same region twice.
 
-**How to fix.** Run: preflight fix-bed --merge <file> --out <merged file>, or remove the duplicates by hand.
+**How to fix.** Run preflight fix-bed --merge <file> --out <merged file>, or remove duplicates manually.
 
 <details><summary>Technical detail</summary>
 
-Intervals are sorted per chromosome. An interval that starts before the furthest end seen so far overlaps; one that starts exactly at that end is book-ended (touching). Merged territory is computed after joining both kinds, like 'bedtools merge'.
+Intervals are sorted per chromosome. An interval overlaps if it starts before the furthest end seen so far. If its start position exactly matches that end position, the intervals are adjacent at their endpoints (book-ended). As in `bedtools merge`, merged territory is calculated after merging overlapping and book-ended intervals.
 
 Evidence: overlapping=1, touching=1, raw_bp=2579, merged_bp=2539
 
@@ -62,7 +62,7 @@ Evidence: overlapping=1, touching=1, raw_bp=2579, merged_bp=2539
 
 <details><summary>Technical detail</summary>
 
-Looks for a UTF-8 byte-order mark, CRLF (Windows) line endings, spaces used as column separators, and trailing spaces or tabs at the end of a line. The parser tolerates all four, so the other checks still run on the cleaned content.
+Looks for UTF-8 byte order marks, CRLF (Windows) line endings, spaces used as column delimiters, and trailing spaces or tabs. Since the parser accepts all 4 cases, the remaining checks are still run on the cleaned content.
 
 Evidence: First lines: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
@@ -70,13 +70,13 @@ Evidence: First lines: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
 ### WARN BED010: Interval sizes are plausible for a capture panel
 
-**What this means.** 1 interval is shorter than 20 bp. Very short regions are often typing mistakes (a start and end that are almost equal), and very long ones are usually whole genes or chromosomes pasted in by mistake; neither behaves like normal capture targets.
+**What this means.** 1 interval is shorter than 20 bp. Extremely short regions often result from input errors where the start and end positions are nearly identical. Extremely long regions typically result from accidentally pasting an entire gene or chromosome. These types of regions behave differently from standard capture targets.
 
-**How to fix.** Check the listed lines. If they are intended (for example a large linkage region), you can ignore this warning; otherwise correct them.
+**How to fix.** Check the listed lines. If they are intended (for example, a large linkage region), you can ignore this warning. Otherwise, correct them.
 
 <details><summary>Technical detail</summary>
 
-Flags intervals shorter than 20 bp and longer than 1,000,000 bp (1 Mb). Whole-genome or large-region designs can ignore this warning.
+Flags intervals shorter than 20 bp and those longer than 1,000,000 bp (1 Mb). For designs targeting the whole genome or large regions, you can ignore this warning.
 
 Evidence: Short, lines: 8
 
@@ -84,13 +84,13 @@ Evidence: Short, lines: 8
 
 ### WARN BED011: Interval names are unique
 
-**What this means.** 1 name is used for more than one interval (for example "TGT_001", 2 times). Results are often reported per name, so repeated names can be merged together or overwrite each other.
+**What this means.** 1 name is used for more than one interval (for example, "TGT_001" is used 2 times). Since results are typically reported by name, duplicate names may cause these results to be merged or overwritten.
 
-**How to fix.** Make the names unique (for example add an exon number), or ignore this warning if repeated names are intended.
+**How to fix.** Ensure that names are unique (for example, by adding exon numbers). Alternatively, if duplicate names are intentional, ignore this warning.
 
 <details><summary>Technical detail</summary>
 
-Only runs when column 4 (name) is present. Empty names and the placeholder '.' are ignored. Repeated names for different exons of one gene are common and may be fine.
+This check is only performed when column 4 (name) is present. Empty names and the placeholder '.' are ignored. Different exons of the same gene often use the same name, and this is acceptable in some cases.
 
 Evidence: Repeated: TGT_001 x2
 
@@ -100,11 +100,11 @@ Evidence: Repeated: TGT_001 x2
 
 **What this means.** 10 intervals on 5 chromosomes, covering 2,539 bp after merging overlaps. Sizes: smallest 8 bp, median 290 bp, largest 330 bp. chrY absent; chrM absent.
 
-**What to do.** No action needed. Check that the totals match what you expect for your design (for example, the panel or exome you ordered).
+**What to do.** No action is required. Confirm that the totals match the expected values for your design (for example, the panel or exome you ordered).
 
 <details><summary>Technical detail</summary>
 
-Counts intervals, total and merged base pairs, the size distribution, intervals on alt/decoy/unplaced contigs (any name that is not chr1-22, X, Y or M, with or without 'chr'), presence of chrY and chrM, and the number of header lines that were ignored.
+Counts intervals, total base pairs, base pairs after merging, and size distribution. Counts intervals on alt/decoy/unplaced contigs (contigs whose names do not match chr1-22, X, Y, or M, regardless of whether they include 'chr'). Also records whether chrY and chrM are present and the number of ignored header lines.
 
 Evidence: intervals=10, raw_bp=2579, merged_bp=2539, mean_size=257.9, style=plain
 
@@ -114,13 +114,13 @@ Evidence: intervals=10, raw_bp=2579, merged_bp=2539, mean_size=257.9, style=plai
 
 ### ERROR SS002: Sample IDs are unique
 
-**What this means.** 1 sample ID appears on more than one row without a different lane number (for example "S01" on lines 2, 4). Two different samples with the same ID cannot be told apart, and their results would be merged or overwritten.
+**What this means.** 1 sample ID appears on more than one row without a different lane number (for example, "S01" on lines 2, 4). 2 different samples with the same ID cannot be distinguished, and their results would be merged or overwritten.
 
-**How to fix.** Give every sample a unique ID. If one sample was sequenced on several lanes, add a lane column and give each row its own lane number.
+**How to fix.** Assign a unique ID to each sample. If the same sample was sequenced across multiple lanes, add a lane column and assign the corresponding lane number to each row.
 
 <details><summary>Technical detail</summary>
 
-Rows may repeat a sample_id only when a 'lane' column exists and each repeated row has a distinct, non-blank lane (one sample sequenced on several lanes). Anything else is a duplicate.
+The same sample_id is allowed in multiple rows only if a 'lane' column is present. In these rows, lane values must be non-empty and distinct (i.e. the same sample is sequenced across multiple lanes). All other cases are considered duplicates.
 
 Evidence: Duplicated: S01 (lines 2, 4)
 
@@ -128,13 +128,13 @@ Evidence: Duplicated: S01 (lines 2, 4)
 
 ### ERROR SS003: Sample IDs use safe characters
 
-**What this means.** 1 sample ID is not allowed (for example "S 05/b"). Sample IDs may only use letters, digits, underscore and hyphen, up to 64 characters. Spaces, slashes and other symbols break file names and many workflow tools.
+**What this means.** 1 sample ID is not allowed (for example, "S 05/b"). Sample IDs may contain only letters, digits, underscores, and hyphens, up to 64 characters. Spaces, slashes, and other symbols cause problems with file names and many workflow tools.
 
-**How to fix.** Rename the samples using only A-Z, a-z, 0-9, underscore (_) and hyphen (-).
+**How to fix.** Change sample names using only A-Z, a-z, 0-9, underscores (_), and hyphens (-).
 
 <details><summary>Technical detail</summary>
 
-Pattern from the schema: ^[A-Za-z0-9_-]+$, maximum length 64. Blank IDs are reported by SS001, not here.
+Schema pattern is ^[A-Za-z0-9_-]+$ and the maximum length is 64. Empty IDs are reported by SS001 and are not reported here.
 
 Evidence: Lines: 5
 
@@ -142,13 +142,13 @@ Evidence: Lines: 5
 
 ### ERROR SS004: Read files exist and are readable
 
-**What this means.** 2 files listed in the sample sheet could not be found or opened (for example "S10_R1.fastq.gz" for sample "S10"). The run would fail as soon as it tries to read them.
+**What this means.** 2 files listed in the sample sheet could not be found or opened (for example, "S10_R1.fastq.gz" for sample "S10"). The run would fail as soon as it tried to read them.
 
-**How to fix.** Check the file names for typos and that the files were copied to the folder given with --reads-dir. Upload any files that are missing.
+**How to fix.** Check the file names for spelling errors, and confirm that the files have been copied to the folder specified by --reads-dir. Upload any missing files.
 
 <details><summary>Technical detail</summary>
 
-Relative paths are resolved against --reads-dir; absolute paths are used as written. Paths that are URLs (s3://, gs://, https://, ...) cannot be checked and are skipped. A file of 0 bytes counts as unreadable.
+Relative paths are resolved against --reads-dir, while absolute paths are used as provided. Paths expressed as URLs (s3://, gs://, https://, ...) are skipped because they cannot be validated. Files with a size of 0 bytes are considered unreadable.
 
 Evidence: Looked in: examples/messy/reads. S10_R1.fastq.gz (S10): not found; S10_R2.fastq.gz (S10): not found
 
@@ -156,13 +156,13 @@ Evidence: Looked in: examples/messy/reads. S10_R1.fastq.gz (S10): not found; S10
 
 ### ERROR SS005: No file is listed twice
 
-**What this means.** 1 file is listed more than once (for example "S01_R1.fastq.gz", used by S01 (line 2) and S11 (line 11)). Reads from one file would be counted under several samples, or the same reads used as both read 1 and read 2.
+**What this means.** 1 file is listed more than once (for example, "S01_R1.fastq.gz", used by S01 (line 2) and S11 (line 11)). Reads from one file would be counted under several samples, or the same reads would be used as both read 1 and read 2.
 
-**How to fix.** Check that each sample points at its own files. If you copied a row to make a new one, update its file names.
+**How to fix.** Check that each sample references its own files. If you created a new row by copying another row, update the file names in that row.
 
 <details><summary>Technical detail</summary>
 
-Paths are compared as written (after normalising slashes). A file appearing in two rows, or as both fastq_1 and fastq_2 of one row, is reported.
+Paths are compared in their recorded form after slash normalization. If the same file appears in 2 rows or in both fastq_1 and fastq_2 within 1 row, this is reported.
 
 Evidence: S01_R1.fastq.gz: S01 (line 2), S11 (line 11)
 
@@ -170,13 +170,13 @@ Evidence: S01_R1.fastq.gz: S01 (line 2), S11 (line 11)
 
 ### ERROR SS008: Sex values are from the allowed list
 
-**What this means.** 1 value is not in the accepted list (for example "banana" for sample "S06"). Downstream steps and the sex check need a recognised value.
+**What this means.** 1 value is not in the list of allowed values (for example, "banana" for sample "S06"). Downstream steps and the sex check need a recognised value.
 
-**How to fix.** Use one of: male, female, unknown (or M, F, U; or 1, 2, 0), or leave the cell blank.
+**How to fix.** Use male, female, or unknown (or M, F, U, or 1, 2, 0), or leave the cell blank.
 
 <details><summary>Technical detail</summary>
 
-Accepted values (case-insensitive): male/m/1, female/f/2, unknown/u/0/NA/n/a/'.'. A blank cell is allowed (sex unknown). The vocabulary is defined in src/ngs_preflight/schema/samplesheet.yaml.
+Accepted values are male/m/1, female/f/2, and unknown/u/0/NA/n/a/'.' (case-insensitive). A blank value is also allowed and indicates unknown sex. This vocabulary is defined in src/ngs_preflight/schema/samplesheet.yaml.
 
 Evidence: Lines: 6
 
@@ -184,13 +184,13 @@ Evidence: Lines: 6
 
 ### ERROR SS009: Family relationships are consistent
 
-**What this means.** 1 sample is listed as its own parent (for example "S07" as its own father, line 7). The family structure is used for relatedness checks and by family-aware analysis, so an inconsistent one can give wrong results.
+**What this means.** 1 sample is listed as its own parent (for example "S07" as its own father, line 7). The pedigree is used for relatedness checks and by analyses which take the pedigree into account, so an inconsistent pedigree can give incorrect results.
 
-**How to fix.** Add a row for each parent (or clear the parent cell if the parent is not part of this submission), and make sure nobody is listed as their own parent.
+**How to fix.** Add a row for each parent (if a parent is not included in this submission, leave the corresponding parent cell blank). Also confirm that no individual is listed as their own parent.
 
 <details><summary>Technical detail</summary>
 
-Every non-empty paternal_id / maternal_id must be the sample_id of another row, and no sample may be its own father or mother. Blank, 0, '.', NA, n/a and none mean 'no parent recorded'.
+Every non-empty paternal_id / maternal_id must match the sample_id in another row, and no sample may be its own father or mother. Blank values, 0, '.', NA, n/a, and none indicate no parent record.
 
 Evidence: Lines: 7
 
@@ -198,13 +198,13 @@ Evidence: Lines: 7
 
 ### ERROR SS009: Family relationships are consistent
 
-**What this means.** 2 parent references point to a sample that is not in the sheet (for example "S01" names "S03" as its mother, line 2). The family structure is used for relatedness checks and by family-aware analysis, so an inconsistent one can give wrong results.
+**What this means.** 2 parent references point to a sample that is not in the sheet (for example "S01" names "S03" as its mother, line 2). The pedigree is used for relatedness checks and by analyses which take the pedigree into account, so an inconsistent pedigree can give incorrect results.
 
-**How to fix.** Add a row for each parent (or clear the parent cell if the parent is not part of this submission), and make sure nobody is listed as their own parent.
+**How to fix.** Add a row for each parent (if a parent is not included in this submission, leave the corresponding parent cell blank). Also confirm that no individual is listed as their own parent.
 
 <details><summary>Technical detail</summary>
 
-Every non-empty paternal_id / maternal_id must be the sample_id of another row, and no sample may be its own father or mother. Blank, 0, '.', NA, n/a and none mean 'no parent recorded'.
+Every non-empty paternal_id / maternal_id must match the sample_id in another row, and no sample may be its own father or mother. Blank values, 0, '.', NA, n/a, and none indicate no parent record.
 
 Evidence: line 2: S01 -> S03 (mother); line 7: S07 -> S99 (mother)
 
@@ -212,13 +212,13 @@ Evidence: line 2: S01 -> S03 (mother); line 7: S07 -> S99 (mother)
 
 ### WARN SS006: Read 1 and read 2 files pair up
 
-**What this means.** 2 rows do not look like matching read 1 / read 2 pairs (for example sample "S08": fastq_1 looks like read 2 and fastq_2 like read 1 (swapped)). Mispaired files make alignment fail or produce nonsense, often only after hours of compute.
+**What this means.** 2 rows do not look like matching read 1 / read 2 pairs (for example, sample "S08": fastq_1 looks like read 2 and fastq_2 like read 1 (swapped)). Mispaired files make alignment fail or produce meaningless results, often only after hours of computation.
 
-**How to fix.** Check that fastq_1 holds the read 1 file and fastq_2 the read 2 file from the same sequencing run, and that neither was renamed or swapped.
+**How to fix.** Confirm that fastq_1 contains the read 1 file and fastq_2 contains the read 2 file. Check that these files came from the same sequencing run and that neither has been renamed or swapped.
 
 <details><summary>Technical detail</summary>
 
-File names are compared after replacing R1/R2 (or _1/_2) with a placeholder. When both files can be read (--reads-dir), the first 100 read names are compared (the first token of each header, ignoring a trailing /1 or /2). Files without an R1/R2 marker pass the name test.
+File names are compared after R1/R2 (or _1/_2) is replaced with a placeholder. If both files are readable (--reads-dir), the first 100 read names are compared. This comparison uses the first token of each header and ignores a trailing /1 or /2. Files without an R1/R2 marker pass the name test.
 
 Evidence: line 8 S08: fastq_1 looks like read 2 and fastq_2 like read 1 (swapped); line 11 S11: the two file names differ by more than R1/R2
 
@@ -226,13 +226,13 @@ Evidence: line 8 S08: fastq_1 looks like read 2 and fastq_2 like read 1 (swapped
 
 ### WARN SS007: Compressed files are intact
 
-**What this means.** 1 file appears damaged or incomplete (for example "S09_R1.fastq.gz": the compressed data ends unexpectedly (the file looks truncated)). A truncated download or interrupted copy is the usual cause, and it makes runs fail partway through.
+**What this means.** 1 file appears damaged or incomplete (for example, "S09_R1.fastq.gz": the compressed data ends unexpectedly (the file looks truncated)). An interrupted download or copy is the usual cause, and it makes runs fail partway through.
 
-**How to fix.** Copy or download the file again, and compare its checksum (for example md5sum) with the one given by the sender.
+**How to fix.** Copy or download the file again, and compare its checksum (for example, md5sum) with the checksum provided by the sender.
 
 <details><summary>Technical detail</summary>
 
-Fast check, not a full validation. Every .gz/.bam: gzip signature, clean header, first 4 MiB decompresses. BGZF files (.bam, bgzip FASTQ): the 28-byte end-of-file marker must be present. Other gzip files up to 32 MiB: the whole stream is decompressed and its CRC verified. Larger non-BGZF gzip files cannot be proven complete cheaply, so only the head and trailer are checked.
+This is a quick check and does not provide full validation. For every .gz/.bam file, it checks the gzip signature and the header, and that the first 4 MiB can be decompressed. BGZF files (.bam, bgzip FASTQ) must contain the 28-byte end-of-file marker. Other gzip files of 32 MiB or less are decompressed in full and their CRC is verified. Larger non-BGZF gzip files cannot be shown to be complete at low cost, so only their beginning and end are checked.
 
 Evidence: 17 file(s) checked. S09_R1.fastq.gz: the compressed data ends unexpectedly (the file looks truncated)
 

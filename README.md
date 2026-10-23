@@ -1,27 +1,27 @@
 # ngs-preflight
 
-Check the inputs of a sequencing analysis (target BED, sample sheet, reference, and optionally sample identity) before the first run, and get problems explained in plain language.
+Before your first run, check your sequencing inputs (target BED, sample sheet, reference sequence, and optional sample identity). Get a plain-language explanation of any issues.
 
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-informational)](.github/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)](pyproject.toml)
 [![Checks coverage](https://img.shields.io/badge/checks%20coverage-%E2%89%A590%25%20enforced%20in%20CI-brightgreen)](.github/workflows/ci.yml)
 
-Documentation, the check catalogue and example reports: **<https://ericwootton.github.io/ngs-preflight/>**
+Documentation, the check catalogue, and example reports are available at **<https://ericwootton.github.io/ngs-preflight/>**.
 
 ## Report at a glance
 
-The HTML report for the deliberately broken [`examples/messy`](examples/messy) submission (the full file is
-[`examples/reports/messy.html`](examples/reports/messy.html); the same run is also available as
-[Markdown](examples/reports/messy.md) and [JSON](examples/reports/messy.json)):
+HTML report for the intentionally flawed [`examples/messy`](examples/messy) submission. The full report is
+available at [`examples/reports/messy.html`](examples/reports/messy.html). Results from the same run are
+also available in [Markdown](examples/reports/messy.md) and [JSON](examples/reports/messy.json) formats:
 
-![HTML report for the messy example: summary card, file table and the first findings](docs/images/report-messy.png)
+![HTML report for the messy example showing a summary card, a file table, and initial findings](docs/images/report-messy.png)
 
-The "good" example, [`examples/good`](examples/good), ends with "Ready to run".
+The good example at [`examples/good`](examples/good) ends "Ready to run".
 
 ## Why this exists
 
-Most failed sequencing analyses fail on something small in the inputs: a BED file with `1` where the reference says `chr1`, a sample sheet that lists a file nobody uploaded, two samples that are the same person. Each costs hours of compute or a round of emails before anybody notices. `ngs-preflight` finds these in seconds and says what is wrong and how to fix it, in words a lab or a customer can act on.
+Most failed sequencing analyses result from subtle problems in the inputs. For example, a contig labelled `chr1` in the reference sequence is labelled `1` in the BED file. Other examples include files listed in the sample sheet which no one has uploaded, or two samples from the same person. Each problem costs hours of computation or a round of emails before anyone notices. `ngs-preflight` detects these problems in seconds and explains what is wrong and how to correct it. This explanation uses language which allows the laboratory or customer to take specific action.
 
 ## Quickstart
 
@@ -42,7 +42,7 @@ docker build -t ngs-preflight:0.1.0 .
 docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" ngs-preflight:0.1.0 preflight check --bed targets.bed --reference GRCh38.fa.fai
 ```
 
-Exit codes: `0` pass, `1` errors (or warnings with `--strict`), `2` warnings only, `3` tool or usage error.
+Exit codes mean `0` pass, `1` errors (or warnings with `--strict` ), `2` warnings only, and `3` tool or usage error.
 
 ### Other commands
 
@@ -53,7 +53,7 @@ preflight docs                                    # regenerate docs/checks.md an
 
 ### Optional: sample identity checks
 
-With [somalier](https://github.com/brentp/somalier) (not bundled) the tool also checks that samples are who the sheet says they are: duplicates, parent-child relatedness, unexpected relatives, declared versus inferred sex.
+When [somalier](https://github.com/brentp/somalier) (not bundled) is used, the tool also checks sample identity against the sample sheet. This includes checking for duplicates, parent-child relatedness, and unexpected relatives, and comparing declared sex with inferred sex.
 
 ```bash
 preflight check --samplesheet samples.csv --identity --sites sites.hg38.vcf.gz \
@@ -62,7 +62,7 @@ preflight check --samplesheet samples.csv --identity --sites sites.hg38.vcf.gz \
 preflight check ... --somalier-cmd 'docker run --rm -v /data:/data brentp/somalier:v0.3.5 somalier'
 ```
 
-Pre-extracted `.somalier` files are accepted in place of BAM/CRAM/VCF. If somalier is not available the identity checks are listed as skipped, with the reason; nothing crashes.
+Pre-extracted `.somalier` files can be used in place of BAM/CRAM/VCF. If somalier is unavailable, the sample identity check is logged as skipped along with the reason, and the tool does not crash.
 
 ## What it does
 
@@ -83,10 +83,10 @@ flowchart LR
     R --> X[exit code 0 / 1 / 2]
 ```
 
-- **28 checks** in a registry; each has an ID, a severity, a plain-language message, technical detail and a suggested fix. The full list is generated into [`docs/checks.md`](docs/checks.md); `preflight explain <ID>` prints one entry.
-- Pure Python (pydantic, rich, jinja2, pyyaml). BAM headers and gzip integrity are read without htslib. Runs on Linux and Windows.
-- Reports: terminal table, single-file HTML (no external assets, readable without colour), Markdown for tickets, JSON for pipelines ([schema and notes](docs/json-report.md)).
-- Customers get a one-page guide: [`docs/for-customers.md`](docs/for-customers.md).
+- The registry contains **28 checks**, each of which includes an ID, severity, a plain-language message, technical details, and a suggested fix. The complete list is generated at [`docs/checks.md`](docs/checks.md). `preflight explain <ID>` displays 1 entry.
+- Pure Python (pydantic, rich, jinja2, pyyaml). BAM headers are read and gzip integrity is checked without htslib. It can be run on Linux and Windows.
+- Reports include a terminal table, single-file HTML (no external resources, readable without colour), Markdown for tickets and JSON for pipelines ([schema and notes](docs/json-report.md)).
+- Customers get a one-page guide at [`docs/for-customers.md`](docs/for-customers.md).
 
 ## Data and citations
 
@@ -96,13 +96,13 @@ flowchart LR
 
 ## Limitations
 
-- It checks file format and consistency. It is not a clinical or scientific validation of the data.
-- BED007 (1-based coordinates) is a heuristic and says so; it can miss cases and, rarely, flag a file that is fine. How it decides is documented in `docs/checks.md`.
-- CRAM headers are not read (reported as a note, REF003). Only BAM headers are compared with the reference.
-- Genome build detection knows human GRCh37 and GRCh38 only; other species are checked by name and length against the reference you give.
-- Gzip integrity is proven in full only for files up to 32 MiB; larger non-BGZF files get a check of their first 4 MiB only, and BGZF files (such as BAM) get an end-of-file marker check plus their first 4 MiB, which catches truncated uploads.
-- Identity checks need somalier 0.3.5 and its sites file, and are reliable only with whole-genome or exome data; with few informative sites ID005 says so.
-- Sample-sheet columns follow one fixed layout ([`schema/samplesheet.yaml`](src/ngs_preflight/schema/samplesheet.yaml)).
+- It checks file formats and consistency. It does not verify the clinical or scientific validity of the data.
+- BED007 (1-based coordinates) is explicitly described as a heuristic check. It may miss problems and may rarely flag files without problems. The method used by this check is documented in `docs/checks.md`.
+- CRAM headers are not read (this is reported as a note, REF003). Only BAM headers are compared with the reference sequence.
+- Genome build detection is supported only for human GRCh37 and GRCh38. For other species, sequence names and lengths are checked against the specified reference.
+- Gzip integrity is fully validated only for files no larger than 32 MiB. For larger non-BGZF files, only the first 4 MiB is checked. For BGZF files such as BAM, the first 4 MiB and the end-of-file marker are checked. This allows truncation during upload to be detected.
+- Sample identity checks require somalier 0.3.5 and its sites file, and are reliable only when whole-genome or exome data are used. If few informative sites are available, ID005 flags this.
+- Columns in the sample sheet follow 1 fixed layout ([`schema/samplesheet.yaml`](src/ngs_preflight/schema/samplesheet.yaml)).
 
 ## Repository layout
 
@@ -118,7 +118,7 @@ CLAUDE.md             conventions for working on this repository
 
 ## How this was built
 
-The author made the design decisions (what to check, how each message is worded, the severity of each check, the identity thresholds), reviewed every diff and verified the results. [Claude Code](https://claude.com/claude-code) did scaffolding, test generation and iteration under that direction, and independent AI review passes were run on the diffs. Real tool output (somalier on public data) is used wherever a result is claimed, and every number in the docs is generated by code. See [`CLAUDE.md`](CLAUDE.md).
+The author made the design decisions about which checks to include, message wording, check severity, and thresholds for sample identity. They also reviewed all diffs and validated the results. [Claude Code](https://claude.com/claude-code) did scaffolding, generated tests, and made iterative changes under the author's direction. These diffs also underwent multiple independent AI reviews. Actual tool output is used wherever results are presented (somalier output for public data), and all numerical values in the documentation are generated by code. See [`CLAUDE.md`](CLAUDE.md).
 
 ## Licence
 

@@ -16,11 +16,11 @@
 
 **What this means.** 18 intervals on 7 chromosomes, covering 5,646 bp after merging overlaps. Sizes: smallest 231 bp, median 300 bp, largest 700 bp. chrY absent; chrM present.
 
-**What to do.** No action needed. Check that the totals match what you expect for your design (for example, the panel or exome you ordered).
+**What to do.** No action is required. Confirm that the totals match the expected values for your design (for example, the panel or exome you ordered).
 
 <details><summary>Technical detail</summary>
 
-Counts intervals, total and merged base pairs, the size distribution, intervals on alt/decoy/unplaced contigs (any name that is not chr1-22, X, Y or M, with or without 'chr'), presence of chrY and chrM, and the number of header lines that were ignored.
+Counts intervals, total base pairs, base pairs after merging, and size distribution. Counts intervals on alt/decoy/unplaced contigs (contigs whose names do not match chr1-22, X, Y, or M, regardless of whether they include 'chr'). Also records whether chrY and chrM are present and the number of ignored header lines.
 
 Evidence: intervals=18, raw_bp=5646, merged_bp=5646, mean_size=313.7, style=chr
 

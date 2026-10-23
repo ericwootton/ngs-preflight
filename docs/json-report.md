@@ -1,14 +1,16 @@
 # JSON report
 
-`preflight check --format json` writes a machine-readable report for pipelines and dashboards.
-The formal JSON Schema is [`report.schema.json`](report.schema.json), generated from the same
-pydantic models the tool uses, so it cannot drift from the output.
+`preflight check --format json` exports a machine-readable report for pipelines and
+dashboards. The official JSON Schema is [`report.schema.json`](report.schema.json) and is
+generated from the same pydantic models used by the tool. This prevents it from drifting from
+the output.
 
 ## Versioning
 
-The `schema_version` field is `"MAJOR.MINOR"`. New optional fields increase MINOR; renamed,
-removed or re-typed fields increase MAJOR. A consumer should check the major version and ignore
-fields it does not know. The current version is `1.0`.
+The `schema_version` field is `"MAJOR.MINOR"`. Adding an optional field increases MINOR.
+Renaming a field, removing a field, or changing a field's type increases MAJOR. Consumers
+should check the major version and ignore fields they do not recognize. The current version is
+`1.0`.
 
 ## Shape
 
@@ -53,17 +55,17 @@ fields it does not know. The current version is `1.0`.
 
 ## Fields
 
-- `status`: `pass`, `warnings` or `errors`. With `--strict`, warnings produce `errors`.
-- `exit_code`: the process exit code: 0 pass, 1 errors, 2 warnings only. Exit code 3 (tool or usage
-  error) means no report was written.
-- `files[].kind`: `bed`, `samplesheet`, `reference`, `reads` or `identity`. The `reference` entry
-  also carries cross-file findings, and the `identity` entry (named `sample identity`) holds the
-  identity checks.
-- `findings[].severity`: `ERROR`, `WARN` or `INFO`. `INFO` never changes the exit code.
-- `skipped`: checks that could not run, each with a plain-language `reason`. A skipped check is
-  not a pass.
-- `duration_seconds` is `null` when the environment variable `SOURCE_DATE_EPOCH` is set, which
-  also fixes `generated_at`, so that reports can be reproduced byte for byte.
+- `status` is `pass`, `warnings`, or `errors`. When `--strict` is specified, warning results become `errors`.
+- `exit_code`: Process exit code. 0 indicates a pass, 1 indicates errors, and 2 indicates warnings
+  only. Exit code 3 (tool or usage error) indicates that no report was written.
+- `files[].kind` is `bed`, `samplesheet`, `reference`, `reads`, or `identity`. `reference`
+  entries also include findings from cross-file checks, while `identity` entries (named
+  `sample identity`) hold the identity checks.
+- `findings[].severity` is `ERROR`, `WARN`, or `INFO`. `INFO` never changes the exit code.
+- `skipped` indicates checks which could not be executed. Each entry includes a `reason`
+  written in plain language. These checks are not considered passed.
+- If the environment variable `SOURCE_DATE_EPOCH` is set, `duration_seconds` is `null` and
+  `generated_at` is also fixed. This allows the report to be reproduced byte for byte.
 
 ## Reading it from a script
 

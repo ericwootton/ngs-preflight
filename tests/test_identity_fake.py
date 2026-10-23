@@ -109,7 +109,7 @@ def test_id002_wrong_parent(tmp_path: Path) -> None:
     ]
     report = _run(tmp_path, GOOD_SAMPLES, pairs)
     f = next(x for x in report.all_findings() if x.check_id == "ID002")
-    assert '"dad" is the father of "kid"' in f.message
+    assert 'lists "dad" as the father of "kid"' in f.message
     assert "0.02" in f.message
 
 
@@ -126,7 +126,7 @@ def test_id004_sex_mismatch(tmp_path: Path) -> None:
     samples = [samples_row("kid", "2"), samples_row("dad", "1"), samples_row("mum", "2")]
     report = _run(tmp_path, samples, GOOD_PAIRS)
     f = next(x for x in report.all_findings() if x.check_id == "ID004")
-    assert 'says "kid" is male' in f.message and "look female" in f.message
+    assert 'lists "kid" as male' in f.message and "suggest female" in f.message
 
 
 def test_id004_unknown_inferred_sex_is_quiet(tmp_path: Path) -> None:

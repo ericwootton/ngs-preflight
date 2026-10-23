@@ -32,18 +32,19 @@ def _name(path: str) -> str:
     severity=Severity.ERROR,
     title="BED file can be read",
     message=(
-        "{problem} Tools that read this file will stop, or silently skip those lines, so part of "
-        "your target regions could be lost."
+        "{problem} Tools which read this file will stop running or silently skip the affected "
+        "lines. This may result in the loss of some target regions."
     ),
     detail=(
-        "Each non-header line must have at least 3 columns separated by tabs, where columns 2 and "
-        "3 are integers. Lines starting with 'track', 'browser' or '#' are header lines: they are "
-        "allowed and counted (see BED009). Blank lines are ignored. Gzip-compressed BED files are "
-        "decompressed first."
+        "Except for header lines, each line must contain at least 3 tab-separated columns, and "
+        "columns 2 and 3 must contain integers. Lines beginning with 'track', 'browser', or '#' "
+        "are permitted header lines and are included in the line count (see BED009). Blank lines "
+        "are ignored. Gzip-compressed BED files are decompressed first."
     ),
     fix=(
-        "Open the file and correct or remove the listed lines. Each line needs a chromosome name, "
-        "a start and an end, separated by tabs, with start and end as whole numbers."
+        "Open the file and edit or delete the listed lines. Each line must contain a chromosome "
+        "name, start position, and end position separated by tabs. Start and end positions must be "
+        "integers."
     ),
     scope="bed",
 )
@@ -74,14 +75,15 @@ def bed001(ctx: BedContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Start and end make sense",
     message=(
-        "{count} {have} impossible coordinates (for example line {line}: start {start:,}, end "
-        "{end:,}). A region must start at 0 or later and end after it starts; empty or backwards "
-        "regions are rejected by most tools or silently ignored."
+        "{count} {have} invalid coordinates (for example, line {line} starts at {start:,} and ends "
+        "at {end:,}). Regions must start at 0 or greater and end after their start position. Empty "
+        "regions or regions with reversed start and end positions are rejected or silently ignored "
+        "by most tools."
     ),
-    detail="Every interval must satisfy 0 <= start < end. BED is 0-based, half-open.",
+    detail=("All intervals must satisfy 0 <= start < end. BED uses 0-based, half-open intervals."),
     fix=(
-        "Check the start and end columns on the listed lines. If start and end were swapped, swap "
-        "them back; empty regions (start equal to end) can be deleted."
+        "Check the start and end columns in the listed rows. If start and end have been swapped, "
+        "restore their original order. You can remove empty regions where start and end are equal."
     ),
     scope="bed",
 )
@@ -126,15 +128,15 @@ def _rename_direction(missing: list[str], known: set[str]) -> tuple[str, str] | 
     severity=Severity.ERROR,
     title="Chromosome names exist in the reference",
     message=(
-        "{summary} in the BED file cannot be found in the reference: {contigs}. {hint} "
-        "Tools will fail or skip these regions, so the data you expect to be analysed would be "
+        "{summary} in the BED file cannot be found in the reference sequence: {contigs}. {hint} "
+        "Tools will fail or skip these regions, so data you expect to be analysed would be "
         "missing."
     ),
     detail=(
-        "Every contig name in column 1 is compared, exactly and case-sensitively, with the "
-        "sequence names in the reference .fai/.dict. If adding or removing a 'chr' prefix "
-        "(including MT <-> chrM) would make every missing name match, the message says so and "
-        "points to 'preflight fix-bed'."
+        "All contig names in column 1 are checked against sequence names in the reference "
+        ".fai/.dict using case-sensitive exact matching. If adding or removing the 'chr' prefix "
+        "(including MT <-> chrM) resolves all unmatched names, the message states this and "
+        "suggests running 'preflight fix-bed'."
     ),
     fix="{fix}",
     scope="bed",
@@ -193,17 +195,19 @@ def bed003(ctx: BedContext) -> Iterator[Hit]:
     severity=Severity.ERROR,
     title="Intervals stay inside their chromosome",
     message=(
-        "{count} {extend} past the end of {its} chromosome in the reference (for example line "
-        "{line}: {contig} is {length:,} bp long but the interval ends at {end:,}). This usually "
-        "means the BED was made for a different genome build, or has typing errors."
+        "{count} {extend} beyond the end of {its} chromosome in the reference sequence (for "
+        "example, line {line}, {contig} is {length:,} bp long, but the interval ends at {end:,}). "
+        "This usually means that the BED was created for a different genome build or contains a "
+        "typographical error."
     ),
     detail=(
-        "For contigs present in the reference, end must be <= the contig length from the "
-        ".fai/.dict."
+        "For contigs present in the reference sequence, end must be less than or equal to the "
+        "contig length recorded in .fai/.dict."
     ),
     fix=(
-        "Confirm the BED was made for the same genome build as the reference (for example GRCh38, "
-        "not GRCh37). If it was, correct or remove the listed lines."
+        "Please confirm that the BED was created for the same genome build as the reference "
+        "sequence (for example, GRCh38, not GRCh37). If it was created for the same genome build, "
+        "correct or remove the listed rows."
     ),
     scope="bed",
     requires=("reference",),
@@ -273,18 +277,19 @@ def sort_problem(
     severity=Severity.WARN,
     title="Intervals are sorted",
     message=(
-        "The BED file is not sorted: {reason}. Several common tools (bedtools, tabix, many "
-        "variant callers) need sorted regions and will stop, or quietly give wrong answers, "
-        "if they are not."
+        "The BED file is not sorted: {reason}. Some commonly used tools (bedtools, tabix, and many "
+        "variant callers) require sorted regions. If regions are not sorted, these tools will stop "
+        "running or quietly return incorrect results."
     ),
     detail=(
-        "Sorted means every chromosome is one contiguous block, starts do not decrease inside a "
-        "block, and the blocks follow either the reference order (when a reference is given) or "
-        "plain alphabetical order (as produced by 'sort -k1,1 -k2,2n')."
+        "Sorted means that each chromosome forms a single continuous block and start positions "
+        "within each block do not decrease. These blocks follow reference sequence order (if a "
+        "reference sequence is specified) or simple alphabetical order (the order produced by "
+        "'sort -k1,1 -k2,2n')."
     ),
     fix=(
-        "Run: preflight fix-bed --sort <file> --out <sorted file>. Add --reference to sort in "
-        "reference order."
+        "Run preflight fix-bed --sort <file> --out <sorted file>. To sort in reference sequence "
+        "order, add --reference."
     ),
     scope="bed",
 )
@@ -321,18 +326,19 @@ def overlap_stats(intervals: list[Interval]) -> tuple[int, int, int, int, int]:
     severity=Severity.WARN,
     title="No overlapping or touching intervals",
     message=(
-        "{what}. Counted as written, the targets add up to {raw}, but they cover only {merged} "
-        "once overlaps are merged ({before} regions become {after}). Overlaps can double-count "
-        "coverage and make some tools report the same region twice."
+        "{what}. Summing the recorded intervals gives a total target size of {raw}, while coverage "
+        "after merging overlaps is only {merged} ({before} regions become {after}). When overlaps "
+        "are present, coverage can be counted more than once, and some tools may report the same "
+        "region twice."
     ),
     detail=(
-        "Intervals are sorted per chromosome. An interval that starts before the furthest end seen "
-        "so far overlaps; one that starts exactly at that end is book-ended (touching). Merged "
-        "territory is computed after joining both kinds, like 'bedtools merge'."
+        "Intervals are sorted per chromosome. An interval overlaps if it starts before the "
+        "furthest end seen so far. If its start position exactly matches that end position, the "
+        "intervals are adjacent at their endpoints (book-ended). As in `bedtools merge`, merged "
+        "territory is calculated after merging overlapping and book-ended intervals."
     ),
     fix=(
-        "Run: preflight fix-bed --merge <file> --out <merged file>, or remove the duplicates "
-        "by hand."
+        "Run preflight fix-bed --merge <file> --out <merged file>, or remove duplicates manually."
     ),
     scope="bed",
 )
@@ -410,44 +416,51 @@ def one_based_reasons(ev: dict[str, int]) -> list[str]:
     severity=Severity.WARN,
     title="Coordinates look 0-based (heuristic)",
     message=(
-        "This BED file may use 1-based coordinates. This is a heuristic guess from patterns in "
-        "the file, not a certainty: {reasons}. BED files are 0-based, so if the file really is "
-        "1-based, every region would be shifted by one base, which can drop or add a base at "
-        "every edge."
+        "This BED file may use coordinates starting at 1. This is a heuristic inference based on "
+        "patterns in the file and is not certain ({reasons}). Since BED coordinates start at 0, "
+        "all regions would be shifted by 1 base if this file actually uses coordinates starting at "
+        "1. This may result in 1 base being missing or added at each boundary."
     ),
     detail=(
-        "Heuristic, and deliberately conservative. It looks for one kind of evidence: among "
-        "neighbouring non-overlapping regions on a chromosome, at least 5 are separated by "
-        "exactly 1 base, at least 3 times as many as touch directly, and they make up at least "
-        "10% of neighbour pairs. A start of 0 anywhere rules out 1-based and silences the check. "
-        "Sparse target lists carry no such pattern, so most 1-based files cannot be detected."
+        "This heuristic is deliberately conservative and detects only 1 type of evidence. Among "
+        "adjacent, non-overlapping region pairs on a chromosome, at least 5 pairs must have a gap "
+        "of exactly 1 base. Their number must also be at least 3 times the number of directly "
+        "adjoining pairs. These pairs must account for at least 10% of all adjacent region pairs. "
+        "If any region starts at 0, 1-based coordinates are ruled out and this check is silenced. "
+        "Since this pattern is absent from lists of sparse target regions, most 1-based files "
+        "cannot be detected."
     ),
     fix=(
-        "Check how the file was produced. If the coordinates came from a spreadsheet, a "
-        "1-based 'closed interval' export or a VCF/GFF-style list, subtract 1 from the start "
-        "column and leave the end column alone. If you are sure the file is 0-based BED, you "
-        "can ignore this warning."
+        "Confirm how the file was generated. If coordinates came from a spreadsheet, a 1-based "
+        "closed-interval export, or a VCF/GFF list, subtract 1 from the values in the start "
+        "column. Leave the values in the end column unchanged. If you are certain that the file is "
+        "a 0-based BED file, you can ignore this warning."
     ),
     scope="bed",
     notes=(
-        "**Why a heuristic.** A BED file does not say which convention it uses, and a shifted "
-        "file is still valid BED. The only evidence available is indirect, so this check looks "
-        "for patterns that are rare in genuine 0-based files:\n\n"
-        "*Exactly-one-base gaps between neighbours.* Adjacent 0-based half-open regions that "
-        "tile a stretch of genome share a boundary (the next start equals the previous end). The "
-        "same regions written as 1-based closed intervals show a gap of exactly 1 between them. "
-        "A gap of exactly 1 base is rare by chance (gaps between targets are usually tens to "
-        "thousands of bases), so a file with many of them and few direct touches is suspicious.\n\n"
-        "*What is deliberately not used.* Coordinates written in the name column (for example "
-        "`chr1:101-200` on a region with start 100) are not evidence either way: a correct "
-        "0-based file is often named with 1-based coordinates, and a careless one with its raw "
-        "columns, so names cannot tell the two apart.\n\n"
-        "A `start` of 0 is impossible in a 1-based file, so any such interval silences the "
-        "check. The thresholds are fixed in code (`ONE_BASED_MIN_EVIDENCE = 5` and the ratios "
-        "above). The check has false negatives by design: sparse lists, such as a capture panel "
-        "with well-separated exons, carry no pattern, and detecting those would need an "
-        "annotation (exon starts from a known gene model), which ngs-preflight does not ship. "
-        "It is meant to avoid false alarms, so it stays silent when unsure."
+        "**Why a heuristic.** BED files do not specify their coordinate convention, and files with "
+        "shifted coordinates are still valid BED files. Since only indirect evidence is available, "
+        "this check looks for patterns which are relatively rare in files that actually use "
+        "0-based coordinates:\n\n*Exactly-one-base gaps between neighbours.* Adjacent 0-based "
+        "half-open intervals which cover a genomic segment without gaps share a boundary (the next "
+        "interval starts where the previous interval ends). When the same region is represented by "
+        "1-based closed intervals, each interval starts exactly 1 position after the previous "
+        "interval ends. Gaps of exactly 1 base rarely occur by chance (gaps between targets are "
+        "typically tens to thousands of bases). Therefore, a file can be considered suspicious if "
+        "it contains many such gaps and few intervals which meet directly at their "
+        "boundaries.\n\n*What is deliberately not used.* Coordinates recorded in the name column, "
+        "such as `chr1:101-200` for a region starting at 100, cannot be used as evidence for "
+        "either case.\n\nEven when a file correctly uses 0-based coordinates, its names often use "
+        "1-based coordinates. In hastily created files, column values are used unchanged as names. "
+        "Therefore, names cannot be used to distinguish between these cases.\n\nIn files using "
+        "1-based coordinates, `start` cannot be 0. Therefore, the check will report nothing if "
+        "such intervals are present. Thresholds are fixed in the code (`ONE_BASED_MIN_EVIDENCE = "
+        "5` and the ratios above). This check produces false negatives by design.\n\nSparse "
+        "interval lists, such as capture panels where exons are sufficiently far apart, have no "
+        "identifiable pattern. Detecting these cases requires annotation information based on the "
+        "positions where exons begin in known gene models. However, ngs-preflight does not "
+        "include this information. Since the aim is to avoid false positives, the check reports "
+        "nothing when it cannot be confident."
     ),
 )
 def bed007(ctx: BedContext) -> Iterator[Hit]:
@@ -466,9 +479,9 @@ def bed007(ctx: BedContext) -> Iterator[Hit]:
     title="Clean file formatting",
     message="{problem} {consequence}",
     detail=(
-        "Looks for a UTF-8 byte-order mark, CRLF (Windows) line endings, spaces used as column "
-        "separators, and trailing spaces or tabs at the end of a line. The parser tolerates all "
-        "four, so the other checks still run on the cleaned content."
+        "Looks for UTF-8 byte order marks, CRLF (Windows) line endings, spaces used as column "
+        "delimiters, and trailing spaces or tabs. Since the parser accepts all 4 cases, the "
+        "remaining checks are still run on the cleaned content."
     ),
     fix="{fix}",
     scope="bed",
@@ -536,12 +549,13 @@ def bed008(ctx: BedContext) -> Iterator[Hit]:
     title="Territory summary",
     message="{summary}",
     detail=(
-        "Counts intervals, total and merged base pairs, the size distribution, intervals on "
-        "alt/decoy/unplaced contigs (any name that is not chr1-22, X, Y or M, with or without "
-        "'chr'), presence of chrY and chrM, and the number of header lines that were ignored."
+        "Counts intervals, total base pairs, base pairs after merging, and size distribution. "
+        "Counts intervals on alt/decoy/unplaced contigs (contigs whose names do not match chr1-22, "
+        "X, Y, or M, regardless of whether they include 'chr'). Also records whether chrY and chrM "
+        "are present and the number of ignored header lines."
     ),
     fix=(
-        "No action needed. Check that the totals match what you expect for your design "
+        "No action is required. Confirm that the totals match the expected values for your design "
         "(for example, the panel or exome you ordered)."
     ),
     scope="bed",
@@ -587,17 +601,19 @@ def bed009(ctx: BedContext) -> Iterator[Hit]:
     severity=Severity.WARN,
     title="Interval sizes are plausible for a capture panel",
     message=(
-        "{what}. Very short regions are often typing mistakes (a start and end that are almost "
-        "equal), and very long ones are usually whole genes or chromosomes pasted in by "
-        "mistake; neither behaves like normal capture targets."
+        "{what}. Extremely short regions often result from input errors where the start and end "
+        "positions are nearly identical. Extremely long regions typically result from accidentally "
+        "pasting an entire gene or chromosome. These types of regions behave differently from "
+        "standard capture targets."
     ),
     detail=(
-        f"Flags intervals shorter than {SMALL_INTERVAL} bp and longer than {LARGE_INTERVAL:,} bp "
-        "(1 Mb). Whole-genome or large-region designs can ignore this warning."
+        f"Flags intervals shorter than {SMALL_INTERVAL} bp and those longer than "
+        f"{LARGE_INTERVAL:,} bp (1 Mb). For designs targeting the whole genome or large regions, "
+        "you can ignore this warning."
     ),
     fix=(
-        "Check the listed lines. If they are intended (for example a large linkage region), you "
-        "can ignore this warning; otherwise correct them."
+        "Check the listed lines. If they are intended (for example, a large linkage region), you "
+        "can ignore this warning. Otherwise, correct them."
     ),
     scope="bed",
 )
@@ -630,17 +646,18 @@ def bed010(ctx: BedContext) -> Iterator[Hit]:
     severity=Severity.WARN,
     title="Interval names are unique",
     message=(
-        '{count} {are} used for more than one interval (for example "{name}", {times} times). '
-        "Results are often reported per name, so repeated names can be merged together or "
-        "overwrite each other."
+        '{count} {are} used for more than one interval (for example, "{name}" is used {times} '
+        "times). Since results are typically reported by name, duplicate names may cause these "
+        "results to be merged or overwritten."
     ),
     detail=(
-        "Only runs when column 4 (name) is present. Empty names and the placeholder '.' are "
-        "ignored. Repeated names for different exons of one gene are common and may be fine."
+        "This check is only performed when column 4 (name) is present. Empty names and the "
+        "placeholder '.' are ignored. Different exons of the same gene often use the same name, "
+        "and this is acceptable in some cases."
     ),
     fix=(
-        "Make the names unique (for example add an exon number), or ignore this warning if "
-        "repeated names are intended."
+        "Ensure that names are unique (for example, by adding exon numbers). Alternatively, if "
+        "duplicate names are intentional, ignore this warning."
     ),
     scope="bed",
 )
