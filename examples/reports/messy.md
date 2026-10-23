@@ -14,7 +14,7 @@
 
 ### ERROR BED003: Chromosome names exist in the reference
 
-**What this means.** 5 chromosome names in the BED file cannot be found in the reference sequence: "7", "1", "17", "X", "2". The reference uses the "chr" prefix (for example "chr7"), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so data you expect to be analysed would be missing.
+**What this means.** 5 chromosome names in the BED file cannot be found in the reference sequence: "7", "1", "17", "X", "2". The reference uses the "chr" prefix (for example "chr7"), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so data you expect to be analyzed would be missing.
 
 **How to fix.** Run: preflight fix-bed --add-chr targets.bed --out targets.fixed.bed  (writes a corrected copy and leaves your original untouched).
 
@@ -170,7 +170,7 @@ Evidence: S01_R1.fastq.gz: S01 (line 2), S11 (line 11)
 
 ### ERROR SS008: Sex values are from the allowed list
 
-**What this means.** 1 value is not in the list of allowed values (for example, "banana" for sample "S06"). Downstream steps and the sex check need a recognised value.
+**What this means.** 1 value is not in the list of allowed values (for example, "banana" for sample "S06"). Downstream steps and the sex check need a recognized value.
 
 **How to fix.** Use male, female, or unknown (or M, F, U, or 1, 2, 0), or leave the cell blank.
 

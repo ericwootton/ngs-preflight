@@ -129,7 +129,7 @@ def _rename_direction(missing: list[str], known: set[str]) -> tuple[str, str] | 
     title="Chromosome names exist in the reference",
     message=(
         "{summary} in the BED file cannot be found in the reference sequence: {contigs}. {hint} "
-        "Tools will fail or skip these regions, so data you expect to be analysed would be "
+        "Tools will fail or skip these regions, so data you expect to be analyzed would be "
         "missing."
     ),
     detail=(

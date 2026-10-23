@@ -54,7 +54,7 @@
           "severity": "ERROR",
           "title": "Chromosome names exist in the reference",
           "file": "examples/messy/targets.bed",
-          "message": "5 chromosome names in the BED file cannot be found in the reference sequence: \"7\", \"1\", \"17\", \"X\", \"2\". The reference uses the \"chr\" prefix (for example \"chr7\"), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so data you expect to be analysed would be missing.",
+          "message": "5 chromosome names in the BED file cannot be found in the reference sequence: \"7\", \"1\", \"17\", \"X\", \"2\". The reference uses the \"chr\" prefix (for example \"chr7\"), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so data you expect to be analyzed would be missing.",
           "fix": "Run: preflight fix-bed --add-chr targets.bed --out targets.fixed.bed  (writes a corrected copy and leaves your original untouched).",
           "detail": "All contig names in column 1 are checked against sequence names in the reference .fai/.dict using case-sensitive exact matching. If adding or removing the 'chr' prefix (including MT <-> chrM) resolves all unmatched names, the message states this and suggests running 'preflight fix-bed'.",
           "technical": "10 intervals affected. Counts per name: 7=1, 1=5, 17=2, X=1, 2=1"
@@ -184,7 +184,7 @@
           "severity": "ERROR",
           "title": "Sex values are from the allowed list",
           "file": "examples/messy/samples.csv",
-          "message": "1 value is not in the list of allowed values (for example, \"banana\" for sample \"S06\"). Downstream steps and the sex check need a recognised value.",
+          "message": "1 value is not in the list of allowed values (for example, \"banana\" for sample \"S06\"). Downstream steps and the sex check need a recognized value.",
           "fix": "Use male, female, or unknown (or M, F, U, or 1, 2, 0), or leave the cell blank.",
           "detail": "Accepted values are male/m/1, female/f/2, and unknown/u/0/NA/n/a/'.' (case-insensitive). A blank value is also allowed and indicates unknown sex. This vocabulary is defined in src/ngs_preflight/schema/samplesheet.yaml.",
           "technical": "Lines: 6"

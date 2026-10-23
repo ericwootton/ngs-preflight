@@ -63,7 +63,7 @@ def ref001(ctx: CrossContext) -> Iterator[Hit]:
                     ),
                     "consequence": (
                         "Aligners and callers match chromosomes by name, so the reads and the "
-                        "reference would not line up and the run would fail or analyse nothing."
+                        "reference would not line up and the run would fail or analyze nothing."
                     ),
                     "fix": (
                         "Use reads and a reference built with the same naming (re-align or "

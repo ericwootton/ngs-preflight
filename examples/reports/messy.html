@@ -138,7 +138,7 @@ No checks ran on this file directly; it is used as the comparison for the other 
       <h3>Chromosome names exist in the reference</h3>
     </header>
     <h4>What this means</h4>
-    <p>5 chromosome names in the BED file cannot be found in the reference sequence: &#34;7&#34;, &#34;1&#34;, &#34;17&#34;, &#34;X&#34;, &#34;2&#34;. The reference uses the &#34;chr&#34; prefix (for example &#34;chr7&#34;), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so data you expect to be analysed would be missing.</p>
+    <p>5 chromosome names in the BED file cannot be found in the reference sequence: &#34;7&#34;, &#34;1&#34;, &#34;17&#34;, &#34;X&#34;, &#34;2&#34;. The reference uses the &#34;chr&#34; prefix (for example &#34;chr7&#34;), so this looks like a naming difference rather than missing data. Tools will fail or skip these regions, so data you expect to be analyzed would be missing.</p>
     <h4>How to fix</h4>
     <p>Run: preflight fix-bed --add-chr targets.bed --out targets.fixed.bed  (writes a corrected copy and leaves your original untouched).</p>
     <details>
@@ -343,7 +343,7 @@ No checks ran on this file directly; it is used as the comparison for the other 
       <h3>Sex values are from the allowed list</h3>
     </header>
     <h4>What this means</h4>
-    <p>1 value is not in the list of allowed values (for example, &#34;banana&#34; for sample &#34;S06&#34;). Downstream steps and the sex check need a recognised value.</p>
+    <p>1 value is not in the list of allowed values (for example, &#34;banana&#34; for sample &#34;S06&#34;). Downstream steps and the sex check need a recognized value.</p>
     <h4>How to fix</h4>
     <p>Use male, female, or unknown (or M, F, U, or 1, 2, 0), or leave the cell blank.</p>
     <details>

@@ -88,7 +88,7 @@ All intervals must satisfy 0 <= start < end. BED uses 0-based, half-open interva
 
 **Message shown to the customer**
 
-> {summary} in the BED file cannot be found in the reference sequence: {contigs}. {hint} Tools will fail or skip these regions, so data you expect to be analysed would be missing.
+> {summary} in the BED file cannot be found in the reference sequence: {contigs}. {hint} Tools will fail or skip these regions, so data you expect to be analyzed would be missing.
 
 **How it works**
 
@@ -376,7 +376,7 @@ This is a quick check and does not provide full validation. For every .gz/.bam f
 
 **Message shown to the customer**
 
-> {count} not in the list of allowed values (for example, "{value}" for sample "{sample}"). Downstream steps and the sex check need a recognised value.
+> {count} not in the list of allowed values (for example, "{value}" for sample "{sample}"). Downstream steps and the sex check need a recognized value.
 
 **How it works**
 

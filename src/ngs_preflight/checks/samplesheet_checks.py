@@ -421,7 +421,7 @@ def ss007(ctx: SheetContext) -> Iterator[Hit]:
     title="Sex values are from the allowed list",
     message=(
         '{count} not in the list of allowed values (for example, "{value}" for sample "{sample}"). '
-        "Downstream steps and the sex check need a recognised value."
+        "Downstream steps and the sex check need a recognized value."
     ),
     detail=(
         "Accepted values are male/m/1, female/f/2, and unknown/u/0/NA/n/a/'.' (case-insensitive). "

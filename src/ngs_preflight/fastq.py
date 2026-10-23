@@ -30,7 +30,7 @@ def read_names(path: str | Path, n: int = 100) -> list[str]:
 def mate_marker(filename: str) -> tuple[str, str] | None:
     """Return (stem-with-placeholder, mate) such as ('S1_R#_001', '1'), or None if no marker.
 
-    Recognises _R1/_R2, .R1/.R2, _1/_2 and similar before the FASTQ extension.
+    Recognizes _R1/_R2, .R1/.R2, _1/_2 and similar before the FASTQ extension.
     """
     base = Path(filename).name
     stem = _SUFFIX.sub("", base)

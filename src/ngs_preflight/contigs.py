@@ -8,7 +8,7 @@ from collections.abc import Iterable, Mapping
 PRIMARY_RE = re.compile(r"^(?:chr)?(?:[0-9]{1,2}|X|Y|M|MT)$")
 _PRIMARY_NUMERIC_SEX = re.compile(r"^(?:chr)?(?:[0-9]{1,2}|X|Y)$")
 
-# Primary-assembly contig lengths, used only to recognise the human build.
+# Primary-assembly contig lengths, used only to recognize the human build.
 GRCH38_LENGTHS: dict[str, int] = {
     "1": 248956422, "2": 242193529, "3": 198295559, "4": 190214555, "5": 181538259,
     "6": 170805979, "7": 159345973, "8": 145138636, "9": 138394717, "10": 133797422,
