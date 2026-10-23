@@ -39,7 +39,7 @@ Docker (no Python needed):
 
 ```bash
 docker build -t ngs-preflight:0.1.0 .
-docker run --rm -v "$PWD:/data" ngs-preflight:0.1.0 preflight check --bed targets.bed --reference GRCh38.fa.fai
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" ngs-preflight:0.1.0 preflight check --bed targets.bed --reference GRCh38.fa.fai
 ```
 
 Exit codes: `0` pass, `1` errors (or warnings with `--strict`), `2` warnings only, `3` tool or usage error.
@@ -112,7 +112,7 @@ tests/                pytest suite; tests/data holds one fixture per failure mod
 examples/             good and messy submissions, and generated reports in examples/reports/
 docs/                 the documentation site (mkdocs.yml); checks.md and report.schema.json are generated
 scripts/              build_examples.py, check_coverage.py
-Dockerfile            python:3.12-slim, non-root
+Dockerfile            python:3.12-slim; runs as root so WDL engines can pass it inputs
 CLAUDE.md             conventions for working on this repository
 ```
 

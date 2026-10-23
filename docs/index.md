@@ -47,7 +47,7 @@ Or with Docker, without Python:
 
 ```bash
 docker build -t ngs-preflight:0.1.0 https://github.com/ericwootton/ngs-preflight.git
-docker run --rm -v "$PWD:/data" ngs-preflight:0.1.0 \
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" ngs-preflight:0.1.0 \
     preflight check --bed targets.bed --reference GRCh38.fa.fai
 ```
 

@@ -29,7 +29,7 @@ First release: the core checks, four report formats and the optional identity ch
   self-contained HTML file.
 - `preflight explain <ID>`, `preflight fix-bed` (writes a corrected copy, never edits in place)
   and `preflight docs` (generates `docs/checks.md` and `docs/report.schema.json`).
-- A Dockerfile (non-root), a pre-commit configuration and a GitHub Actions workflow.
+- A Dockerfile (runs as root, so WDL engines can pass it their inputs), a pre-commit configuration and a GitHub Actions workflow.
 - A documentation site (MkDocs, published to GitHub Pages by `.github/workflows/docs.yml`) with
   the check catalogue and the example reports; `preflight explain` links to the catalogue entry.
 - Examples: a "good" and a "messy" submission with generated reports in `examples/reports/`.

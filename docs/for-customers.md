@@ -77,7 +77,7 @@ header row.
 ## 3. Check your files before sending them
 
 ```bash
-pipx install ngs-preflight          # or: docker run --rm -v "$PWD:/data" ngs-preflight:0.1.0 preflight ...
+pipx install ngs-preflight          # or: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" ngs-preflight:0.1.0 preflight ...
 preflight check --samplesheet samples.csv --bed targets.bed \
   --reference GRCh38.fa.fai --reads-dir ./fastq --format html --out report.html
 ```

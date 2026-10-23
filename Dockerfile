@@ -14,11 +14,11 @@ COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
 RUN pip install . && rm -rf /build
 
-RUN useradd --create-home --uid 10001 preflight
-USER preflight
+# No USER line: the image runs as root, like the other images in WDL workflows. Cromwell saves inputs it downloads
+# readable by its own user only, so a task running as another user cannot open them.
 WORKDIR /data
 
-# Mount your files at /data, for example:
-#   docker run --rm -v "$PWD:/data" ngs-preflight:0.1.0 preflight check --bed targets.bed
+# Mount your files at /data, and pass your own user so reports are not owned by root:
+#   docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" ngs-preflight:0.1.0 #       preflight check --bed targets.bed
 ENTRYPOINT []
 CMD ["preflight", "--help"]
